@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class KartingApplication {
 	@RequestMapping("/")
 	public String home() {
-		return "Hello Docker World";
+		return "<html><body><h1>Hoaala World</h1><script src=\"http://localhost:35729/livereload.js\"></script></body></html>";
 	}
 
 	public static void main(String[] args) {
