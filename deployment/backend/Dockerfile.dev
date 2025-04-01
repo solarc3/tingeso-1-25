@@ -15,7 +15,4 @@ EXPOSE 8080
 EXPOSE 35729
 
 ENV SPRING_PROFILES_ACTIVE=dev
-ENV MAVEN_OPTS="-XX:TieredStopAtLevel=1 -Xmx1g"
-#faltaba fork mode oops
-# Use this instead
 CMD ["mvn", "spring-boot:run", "-Dspring-boot.run.profiles=dev"]

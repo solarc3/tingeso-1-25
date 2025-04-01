@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: karting-db
+    environment:
+      POSTGRES_DB: kartingdb
+      POSTGRES_USER: ${DB_USERNAME:-kartinguser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kartingpass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - karting-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: karting-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - karting-network
+
+  # Backend Instance 1
+  backend1:
+    image: ${DOCKER_IMAGE_NAME:-karting-app}:${IMAGE_TAG:-latest}
+    container_name: karting-backend1
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/kartingdb
+      DB_USERNAME: ${DB_USERNAME:-kartinguser}
+      DB_PASSWORD: ${DB_PASSWORD:-kartingpass}
+      SERVER_PORT: 8080
+      INSTANCE_NAME: instance1
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - karting-network
+
+  # Backend Instance 2
+  backend2:
+    image: ${DOCKER_IMAGE_NAME:-karting-app}:${IMAGE_TAG:-latest}
+    container_name: karting-backend2
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/kartingdb
+      DB_USERNAME: ${DB_USERNAME:-kartinguser}
+      DB_PASSWORD: ${DB_PASSWORD:-kartingpass}
+      SERVER_PORT: 8080
+      INSTANCE_NAME: instance2
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - karting-network
+
+  # Backend Instance 3
+  backend3:
+    image: ${DOCKER_IMAGE_NAME:-karting-app}:${IMAGE_TAG:-latest}
+    container_name: karting-backend3
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/kartingdb
+      DB_USERNAME: ${DB_USERNAME:-kartinguser}
+      DB_PASSWORD: ${DB_PASSWORD:-kartingpass}
+      SERVER_PORT: 8080
+      INSTANCE_NAME: instance3
+    ports:
+      - "8083:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - karting-network
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  karting-network:
+    driver: bridge
