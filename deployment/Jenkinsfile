@@ -38,6 +38,7 @@ pipeline {
                 }
             }
         }
+
         stage('deploy new images to production server'){
             steps {
                 sshagent([env.SSH_CREDENTIALS]){
@@ -49,6 +50,7 @@ pipeline {
                         sh "scp deployment/docker-compose.prod.yml ${env.TARGET_USER}@${env.TARGET_HOST}:deployment/docker-compose.prod.yml"
                         //ahora se bajan los contenedores anteriores, se pullean las imagenes y se suben con las imagenes nuevas
                         //echo de las variables para la db y las imagenes, aunque se use directamente el tag aca, se puede dejar como latest tambien
+                        script{
                         def env_exports = """
                             export DB_USERNAME=${DB_USERNAME}
                             export DB_PASSWORD=${DB_PASSWORD}
@@ -57,13 +59,14 @@ pipeline {
                             export IMAGE_TAG=${env.IMAGE_TAG}
                         """
                         sh """
-                         ssh ${env.TARGET_USER}@${env.TARGET_HOST} && //
-                            cd deployment && //
-                            ${env_exports} && //
-                            docker-compose -f docker-compose.prod.yml pull && //
-                            docker-compose -f docker-compose.prod.yml down --remove-orphans && //
-                            docker-compose -f docker-compose.prod.yml up -d && //
+                         ssh ${env.TARGET_USER}@${env.TARGET_HOST} && \\
+                            cd deployment && \\
+                            ${env_exports} && \\
+                            docker-compose -f docker-compose.prod.yml pull && \\
+                            docker-compose -f docker-compose.prod.yml down --remove-orphans && \\
+                            docker-compose -f docker-compose.prod.yml up -d && \\
                         """
+                        }
                     }
                 }
             }
