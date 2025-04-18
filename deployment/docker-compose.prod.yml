@@ -1,89 +1,88 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:latest
     container_name: karting-db
     environment:
       POSTGRES_DB: kartingdb
-      POSTGRES_USER: ${DB_USERNAME:-kartinguser}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-kartingpass}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     restart: unless-stopped
     networks:
-      - karting-network
+      - backend-net # Solo en la red backend
   backend1:
-    image: ${DOCKER_IMAGE_NAME:-karting-app}:${IMAGE_TAG:-latest}
+    image: ${BACKEND_IMAGE}:${IMAGE_TAG:-latest}
     container_name: karting-backend1
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://postgres:5432/kartingdb
-      DB_USERNAME: ${DB_USERNAME:-kartinguser}
-      DB_PASSWORD: ${DB_PASSWORD:-kartingpass}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SERVER_PORT: 8080
-      INSTANCE_NAME: instance1
-    ports:
-      - "8081:8080"
     depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - postgres
     restart: unless-stopped
     networks:
-      - karting-network
+      - backend-net
+
   backend2:
-    image: ${DOCKER_IMAGE_NAME:-karting-app}:${IMAGE_TAG:-latest}
+    image: ${BACKEND_IMAGE:${IMAGE_TAG:-latest}
     container_name: karting-backend2
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://postgres:5432/kartingdb
-      DB_USERNAME: ${DB_USERNAME:-kartinguser}
-      DB_PASSWORD: ${DB_PASSWORD:-kartingpass}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SERVER_PORT: 8080
-      INSTANCE_NAME: instance2
-    ports:
-      - "8082:8080"
+    depends_on:
+      - postgres
     restart: unless-stopped
     networks:
-      - karting-network
+      - backend-net
+
   backend3:
-    image: ${DOCKER_IMAGE_NAME:-karting-app}:${IMAGE_TAG:-latest}
+    image: ${BACKEND_IMAGE}:${IMAGE_TAG:-latest}
     container_name: karting-backend3
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://postgres:5432/kartingdb
-      DB_USERNAME: ${DB_USERNAME:-kartinguser}
-      DB_PASSWORD: ${DB_PASSWORD:-kartingpass}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SERVER_PORT: 8080
-      INSTANCE_NAME: instance3
-    ports:
-      - "8083:8080"
     depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - postgres
     restart: unless-stopped
     networks:
-      - karting-network
-
+      - backend-net
+  frontend:
+    image: ${FRONTEND_IMAGE}:${IMAGE_TAG:-latest}
+    container_name: karting-frontend
+    restart: unless-stopped
+    networks:
+      - frontend-net
+  nginx-proxy:
+    image: nginx:stable-alpine
+    container_name: karting-nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deployment/nginx/tingeso.solarworks.cl.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend1
+      - backend2
+      - backend3
+    restart: unless-stopped
+    networks:
+      - frontend-net
+      - backend-net
 volumes:
   postgres_data:
-  pgadmin_data:
 
 networks:
-  karting-network:
+  frontend-net:
+    driver: bridge
+  backend-net:
     driver: bridge

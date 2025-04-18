@@ -6,9 +6,12 @@ pipeline {
         DOCKERHUB_CREDENTIALS = 'ae2addc7-0500-4b2d-9c91-292f2eabb7fb'
         BACKEND_IMAGE_NAME =  "${env.DOCKERHUB_USERNAME}/backend"
         FRONTEND_IMAGE_NAME = "${env.DOCKERHUB_USERNAME}/frontend"
+        SSH_CREDENTIALS = 'ssh-tingeso'
+        TARGET_USER = 'ignacio_solar_usach_cl'
+        TARGET_HOST = '10.194.0.4'
     }
     stages {
-        stage('Build Backend Image') {
+        stage('Build & Pushh Backend Image') {
             steps {
                script{
                 //https://www.jenkins.io/doc/book/pipeline/docker/
@@ -22,7 +25,7 @@ pipeline {
                 }
             }
         }
-        stage('Build Frontend Image') {
+        stage('Build & Push Frontend Image') {
             steps {
                 script{
                     echo "DEBUG: nombre ${FRONTEND_IMAGE_NAME}:${IMAGE_TAG}"
@@ -35,5 +38,34 @@ pipeline {
                 }
             }
         }
+        stage('deploy new images to production server')
+            steps{
+                sshagent([env.SSH_CREDENTIALS]){
+                    withCredentials([string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'), string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD')]){
+                        sh "ssh ${env.TARGET_USER}@${env.TARGET_HOST} 'mkdir -p deployment'"
+                        //entrado y con ruta lista, verificar que exista? sino borrar?
+                        //ahora se copia el compose necesario
+                        //raiz del workspace, raiz del github deploy->dockercompose
+                        sh "scp deployment/docker-compose.prod.yml ${env.TARGET_USER}@${env.TARGET_HOST}:deployment/docker-compose.prod.yml"
+                        //ahora se bajan los contenedores anteriores, se pullean las imagenes y se suben con las imagenes nuevas
+                        //echo de las variables para la db y las imagenes, aunque se use directamente el tag aca, se puede dejar como latest tambien
+                        def env_exports = """
+                            export DB_USERNAME=${DB_USERNAME}
+                            export DB_PASSWORD=${DB_PASSWORD}
+                            export BACKEND_IMAGE=${env.BACKEND_IMAGE_NAME}
+                            export FRONTEND_IMAGE=${env.FRONTEND_IMAGE_NAME}
+                            export IMAGE_TAG=${env.IMAGE_TAG}
+                        """
+                        sh """
+                         ssh ${env.TARGET_USER}@${env.TARGET_HOST} && //
+                            cd deployment && //
+                            ${env_exports} && //
+                            docker-compose -f docker-compose.prod.yml pull && //
+                            docker-compose -f docker-compose.prod.yml down --remove-orphans && //
+                            docker-compose -f docker-compose.prod.yml up -d && //
+                        """
+                    }
+                }
+            }
     }
 }
