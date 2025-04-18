@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Build Backend Image') {
             steps {
-                    script{
+                   script{
                     //https://www.jenkins.io/doc/book/pipeline/docker/
                     echo "DEBUG: nombre ${BACKEND_IMAGE_NAME}:${IMAGE_TAG}"
                         def backendImage = docker.build("${env.BACKEND_IMAGE_NAME}:${env.IMAGE_TAG}", "-f deployment/backend/Dockerfile.prod.backend .")
@@ -20,6 +20,19 @@ pipeline {
                             backendImage.push("latest")
                         }
                     }
+            }
+        }
+        stage('Build Frontend Image') {
+            steps {
+                script{
+                    echo "DEBUG: nombre ${FRONTEND_IMAGE_NAME}:${IMAGE_TAG}"
+                    def frontendImage = docker.build("${env.FRONTEND_IMAGE_NAME}:${env.IMAGE_TAG}", "-f deployment/frontend/Dockerfile.prod.frontend .")
+                    docker.withRegistry("https://index.docker.io/v1/", "${env.DOCKERHUB_CREDENTIALS}") {
+                        echo "DEBUG: nombre ${FRONTEND_IMAGE_NAME}:${IMAGE_TAG}"
+                        frontendImage.push()//sin nombre pq ya tiene el name y image tag
+                        frontendImage.push("latest")
+                    }
+                }
             }
         }
     }
