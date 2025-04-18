@@ -56,12 +56,12 @@ pipeline {
                             export DB_PASSWORD=${DB_PASSWORD}
                             export BACKEND_IMAGE=${env.BACKEND_IMAGE_NAME}
                             export FRONTEND_IMAGE=${env.FRONTEND_IMAGE_NAME}
-                            export IMAGE_TAG=${env.IMAGE_TAG}
+                            export IMAGE_TAG=${env.IMAGE_TAG} && \\
                         """
                         sh """
                          ssh ${env.TARGET_USER}@${env.TARGET_HOST} '\\
                             cd deployment && \\
-                            ${env_exports} && \
+                            ${env_exports}
                             docker-compose -f docker-compose.prod.yml pull && \\
                             docker-compose -f docker-compose.prod.yml down --remove-orphans && \\
                             docker-compose -f docker-compose.prod.yml up -d && \\
