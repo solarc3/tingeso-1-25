@@ -39,7 +39,7 @@ pipeline {
             }
         }
         stage('deploy new images to production server')
-            steps{
+            steps {
                 sshagent([env.SSH_CREDENTIALS]){
                     withCredentials([string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'), string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD')]){
                         sh "ssh ${env.TARGET_USER}@${env.TARGET_HOST} 'mkdir -p deployment'"
