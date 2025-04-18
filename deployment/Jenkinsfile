@@ -59,12 +59,13 @@ pipeline {
                             export IMAGE_TAG=${env.IMAGE_TAG}
                         """
                         sh """
-                         ssh ${env.TARGET_USER}@${env.TARGET_HOST} && \\
+                         ssh ${env.TARGET_USER}@${env.TARGET_HOST} '\\
                             cd deployment && \\
                             ${env_exports} && \\
                             docker-compose -f docker-compose.prod.yml pull && \\
                             docker-compose -f docker-compose.prod.yml down --remove-orphans && \\
                             docker-compose -f docker-compose.prod.yml up -d && \\
+                        '
                         """
                         }
                     }
