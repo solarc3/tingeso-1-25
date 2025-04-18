@@ -1,11 +1,27 @@
 pipeline {
     agent any
+    environment{
+        IMAGE_TAG = "${env.BUILD_ID}"
+        DOCKERHUB_USERNAME = 'solarc3'
+        DOCKERHUB_CREDENTIALS = 'ae2addc7-0500-4b2d-9c91-292f2eabb7fb'
+        BACKEND_IMAGE_NAME =  "${env.DOCKERHUB_USERNAME}/backend"
+        FRONTEND_IMAGE_NAME = "${env.DOCKERHUB_USERNAME}/frontend"
+    }
     stages {
-        stage('Stage 1') {
+        stage('Build Backend Image') {
             steps {
-                sh '''#!/bin/bash
-                                    ls
-                            '''
+                dir('deployment'){
+                    script{
+                    //https://www.jenkins.io/doc/book/pipeline/docker/
+                    echo "DEBUG: nombre ${BACKEND_IMAGE_NAME}:${IMAGE_TAG}"
+                        def backendImage = docker.build("${env.BACKEND_IMAGE_NAME}:${env.IMAGE_TAG}",dir:"backend", dockerfile: "Dockerfile.prod.backend")
+                        docker.withRegistry("https://index.docker.io/v1/", "${env.DOCKERHUB_CREDENTIALS}") {
+                            echo "DEBUG: nombre ${BACKEND_IMAGE_NAME}:${IMAGE_TAG}"
+                            backendImage.push()//sin nombre pq ya tiene el name y image tag
+                            backendImage.push("latest")
+                        }
+                    }
+                }
             }
         }
     }
