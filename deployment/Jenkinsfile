@@ -15,8 +15,8 @@ pipeline {
                     //https://www.jenkins.io/doc/book/pipeline/docker/
                     echo "DEBUG: nombre ${BACKEND_IMAGE_NAME}:${IMAGE_TAG}"
                         def backendImageName = '${env.BACKEND_IMAGE_NAME}:${env.IMAGE_TAG}'
-
-                        def backendImage = docker.build(backendImageName.toString(),dir:'backend', dockerfile: 'Dockerfile.prod.backend')
+                        String backendimg = backendImageName.toString()
+                        def backendImage = docker.build(backendimg,dir:'backend', dockerfile: 'Dockerfile.prod.backend')
                         docker.withRegistry("https://index.docker.io/v1/", "${env.DOCKERHUB_CREDENTIALS}") {
                             echo "DEBUG: nombre ${BACKEND_IMAGE_NAME}:${IMAGE_TAG}"
                             backendImage.push()//sin nombre pq ya tiene el name y image tag
