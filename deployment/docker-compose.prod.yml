@@ -69,6 +69,7 @@ services:
       - "443:443"
     volumes:
       - ./deployment/nginx/tingeso.solarworks.cl.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt
     depends_on:
       - frontend
       - backend1
