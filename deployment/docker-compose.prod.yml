@@ -10,7 +10,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
-      - backend-net # Solo en la red backend
+      - backend-net
   backend1:
     image: ${BACKEND_IMAGE}:${IMAGE_TAG:-latest}
     container_name: karting-backend1
