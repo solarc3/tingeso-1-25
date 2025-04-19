@@ -27,7 +27,7 @@ services:
       - backend-net
 
   backend2:
-    image: ${BACKEND_IMAGE:${IMAGE_TAG:-latest}
+    image: ${BACKEND_IMAGE}:${IMAGE_TAG:-latest}
     container_name: karting-backend2
     environment:
       SPRING_PROFILES_ACTIVE: prod
