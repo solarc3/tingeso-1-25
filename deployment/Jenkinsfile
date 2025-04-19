@@ -49,7 +49,7 @@ pipeline {
                         //raiz del workspace, raiz del github deploy->dockercompose
                         sh "scp deployment/docker-compose.prod.yml ${env.TARGET_USER}@${env.TARGET_HOST}:deployment/docker-compose.prod.yml"
                         //nginx config
-                        sh "ssh ${env.TARGET_USER}@${env.TARGET_HOST} 'mkdir -p deployment/nginx'"
+                        sh "ssh ${env.TARGET_USER}@${env.TARGET_HOST} 'mkdir -p deployment/nginx deployment/certbot/conf deployment/certbot/www'"
                         sh "scp deployment/nginx/tingeso.solarworks.cl.conf ${env.TARGET_USER}@${env.TARGET_HOST}:deployment/nginx/tingeso.solarworks.cl.conf"
                         //ahora se bajan los contenedores anteriores, se pullean las imagenes y se suben con las imagenes nuevas
                         //echo de las variables para la db y las imagenes, aunque se use directamente el tag aca, se puede dejar como latest tambien
@@ -67,8 +67,9 @@ pipeline {
                             ${env_exports}
                             docker compose -f docker-compose.prod.yml pull && \\
                             docker compose -f docker-compose.prod.yml down --remove-orphans && \\
-                            docker compose -f docker-compose.prod.yml up -d
-                        '
+                            docker compose -f docker-compose.prod.yml up -d && \\
+                            docker compose -f docker-compose.prod.yml exec nginx-proxy nginx -s reload && \\
+                                             '
                         """
                         }
                     }

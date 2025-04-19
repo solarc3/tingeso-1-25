@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SpringBootApplication
 @RestController
 public class KartingApplication {
-	@RequestMapping("/")
+	@RequestMapping("/api/me")
 	public String home() {
 		return "hola";
 	}
