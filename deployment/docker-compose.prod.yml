@@ -82,12 +82,12 @@ services:
       - frontend-net
       - backend-net
 
-    certbot:
-      image: certbot/certbot:latest
-      container_name: karting-certbot
-      volumes:
-        - ./certbot/conf:/etc/letsencrypt:rw
-        - ./certbot/www:/var/www/certbot:rw
+  certbot:
+    image: certbot/certbot:latest
+    container_name: karting-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt:rw
+      - ./certbot/www:/var/www/certbot:rw
 volumes:
   postgres_data:
 
