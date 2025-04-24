@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class KartingApplication {
 	@RequestMapping("/api/me")
 	public String home() {
-	    return "Hola desde " + System.getenv("HOSTNAME");
+	    return "Hola soy " + System.getenv("HOSTNAME");
 	}
 
 	public static void main(String[] args) {
