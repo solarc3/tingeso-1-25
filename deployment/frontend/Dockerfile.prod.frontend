@@ -1,11 +1,11 @@
-# frontend/Dockerfile.prod
 FROM oven/bun:latest AS builder
 WORKDIR /app
-COPY package.json bun.lockb ./
+COPY frontend/package.json frontend/bun.lockb ./
 RUN bun install
-COPY . .
+COPY frontend/. .
 RUN bun run build
 
 FROM nginx:stable-alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY deployment/frontend/nginx/conf.d/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
