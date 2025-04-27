@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { format, subDays, addDays } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from "sonner";
+import WeeklyScheduleRack from '@/components/features/admin/WeeklyScheduleRack';
 
 export default function AdminPage() {
     const [reservations, setReservations] = useState<ReservationResponse[]>([]);
@@ -76,6 +77,7 @@ export default function AdminPage() {
             <Tabs defaultValue="reservations">
                 <TabsList className="mb-8">
                     <TabsTrigger value="reservations">Reservas</TabsTrigger>
+                    <TabsTrigger value="schedule">Rack Semanal</TabsTrigger>
                     <TabsTrigger value="reports">Reportes</TabsTrigger>
                     <TabsTrigger value="prices">Precios</TabsTrigger>
                 </TabsList>
@@ -185,6 +187,9 @@ export default function AdminPage() {
                 {/* Pestaña de configuración de precios */}
                 <TabsContent value="prices">
                     <PriceConfigPanel />
+                </TabsContent>
+                <TabsContent value="schedule">
+                    <WeeklyScheduleRack />
                 </TabsContent>
             </Tabs>
         </div>

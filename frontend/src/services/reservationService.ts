@@ -100,3 +100,8 @@ export const checkKartAvailability = async (startTime: string, endTime: string):
     });
     return response.data;
 };
+
+export const cancelReservation = async (id: number): Promise<ReservationResponse> => {
+    const response = await api.post(`/reservations/${id}/cancel`);
+    return response.data;
+};
