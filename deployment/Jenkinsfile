@@ -42,7 +42,9 @@ pipeline {
         stage('deploy new images to production server'){
             steps {
                 sshagent([env.SSH_CREDENTIALS]){
-                    withCredentials([string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'), string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD')]){
+                    withCredentials([string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'), string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),string(credentialsId: 'SPRING_MAIL_HOST', variable: 'SPRING_MAIL_HOST'),
+                                                                                                                                                                                          string(credentialsId: 'SPRING_MAIL_USERNAME', variable: 'SPRING_MAIL_USERNAME'),
+                                                                                                                                                                                          string(credentialsId: 'SPRING_MAIL_PASSWORD', variable: 'SPRING_MAIL_PASSWORD')]){
                         sh "ssh ${env.TARGET_USER}@${env.TARGET_HOST} 'mkdir -p deployment'"
                         //entrado y con ruta lista, verificar que exista? sino borrar?
                         //ahora se copia el compose necesario
@@ -59,6 +61,9 @@ pipeline {
                             export DB_PASSWORD=${DB_PASSWORD}
                             export BACKEND_IMAGE=${env.BACKEND_IMAGE_NAME}
                             export FRONTEND_IMAGE=${env.FRONTEND_IMAGE_NAME}
+                            export SPRING_MAIL_HOST=${SPRING_MAIL_HOST}
+                            export SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME}
+                            export SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD}
                             export IMAGE_TAG=${env.IMAGE_TAG} && \\
                         """
                         sh """
