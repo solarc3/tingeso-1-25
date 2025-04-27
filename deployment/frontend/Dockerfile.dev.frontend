@@ -1,13 +1,16 @@
-FROM node:lts-alpine
-
+FROM oven/bun:latest AS dev
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+# Copia de package.json y bun.lockb
+COPY frontend/package.json frontend/bun.lockb ./
 
-RUN npm install
+# Instalación de dependencias
+RUN bun install
 
-COPY . .
+# Monta el código y exponemos el puerto de Vite
+COPY frontend/. .
 
 EXPOSE 5173
 
-CMD ["npm", "run", "dev"]
+# Lanza el dev server de Vite con Bun
+CMD ["bun", "run", "dev", "--", "--host", "0.0.0.0"]

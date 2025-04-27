@@ -58,6 +58,8 @@ services:
   frontend:
     image: ${FRONTEND_IMAGE}:${IMAGE_TAG:-latest}
     container_name: karting-frontend
+    expose:
+      - "80"
     restart: unless-stopped
     networks:
       - frontend-net
