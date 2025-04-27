@@ -11,9 +11,6 @@ export default function Header() {
                     <Link to="/" className="text-foreground hover:text-primary transition-colors">
                         Inicio
                     </Link>
-                    <Link to="/booking" className="text-foreground hover:text-primary transition-colors">
-                        Reservas
-                    </Link>
                     <Button asChild>
                         <Link to="/booking">Reservar Ahora</Link>
                     </Button>

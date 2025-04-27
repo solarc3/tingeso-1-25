@@ -42,10 +42,10 @@ export default function PriceConfigPanel() {
         setIsSaving(true);
         try {
             await updateSinglePrice(key, prices[key]);
-            toast.success(`Precio de ${formatKey(key)} actualizado correctamente`);
+            toast.success(`Configuración de ${formatKey(key)} actualizada correctamente`);
         } catch (error) {
             console.error(`Error updating price for ${key}:`, error);
-            toast.error(`Error al actualizar el precio de ${formatKey(key)}`);
+            toast.error(`Error al actualizar ${formatKey(key)}`);
             // Restaurar el precio anterior
             loadPrices();
         } finally {
@@ -60,6 +60,27 @@ export default function PriceConfigPanel() {
             .join(' ');
     };
 
+    const configCategories = {
+        'Precios Base': [
+            'VUELTAS_10_PRECIO',
+            'VUELTAS_15_PRECIO',
+            'VUELTAS_20_PRECIO'
+        ],
+        'Descuentos por Grupo (%)': [
+            'DESCUENTO_GRUPO_PEQUENO',  // Para 3-5 personas (10%)
+            'DESCUENTO_GRUPO_MEDIANO',  // Para 6-10 personas (20%)
+            'DESCUENTO_GRUPO_GRANDE'    // Para 11+ personas (30%)
+        ],
+        'Descuentos por Frecuencia (%)': [
+            'DESCUENTO_FRECUENCIA_BAJA',  // 2-4 visitas (10%)
+            'DESCUENTO_FRECUENCIA_MEDIA', // 5-6 visitas (20%)
+            'DESCUENTO_FRECUENCIA_ALTA'   // 7+ visitas (30%)
+        ],
+        'Descuento por Cumpleaños (%)': [
+            'DESCUENTO_CUMPLEANOS'    // Descuento base por cumpleaños
+        ]
+    };
+
     if (isLoading) {
         return (
             <Card>
@@ -71,30 +92,55 @@ export default function PriceConfigPanel() {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Configuración de Precios</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {prices && Object.entries(prices).map(([key, price]) => (
-                    <div key={key} className="grid grid-cols-3 gap-4 items-center mb-4">
-                        <Label className="col-span-1">{formatKey(key)}</Label>
-                        <Input
-                            type="number"
-                            value={price}
-                            onChange={(e) => handlePriceChange(key, e.target.value)}
-                            className="col-span-1"
-                        />
-                        <Button
-                            onClick={() => handleSavePrice(key)}
-                            disabled={isSaving}
-                            className="col-span-1"
-                        >
-                            {isSaving ? 'Guardando...' : 'Guardar'}
-                        </Button>
-                    </div>
-                ))}
-            </CardContent>
-        </Card>
+        <div className="space-y-8">
+            {prices && Object.entries(configCategories).map(([category, keys]) => (
+                <Card key={category}>
+                    <CardHeader>
+                        <CardTitle>{category}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {keys.map(key => {
+                                // Manejar el caso de que algunas claves puedan no existir aún
+                                if (prices[key] === undefined) return null;
+
+                                const isPercentage = !category.startsWith('Precios');
+                                const inputType = isPercentage ? "number" : "number";
+                                const step = isPercentage ? "0.01" : "100";
+                                const suffix = isPercentage ? "%" : "";
+
+                                return (
+                                    <div key={key} className="grid grid-cols-3 gap-4 items-center">
+                                        <Label className="col-span-1">{formatKey(key)}</Label>
+                                        <div className="col-span-1 relative">
+                                            <Input
+                                                type={inputType}
+                                                value={prices[key]}
+                                                step={step}
+                                                min="0"
+                                                onChange={(e) => handlePriceChange(key, e.target.value)}
+                                                className="pr-6"
+                                            />
+                                            {suffix && (
+                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                                    {suffix}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <Button
+                                            onClick={() => handleSavePrice(key)}
+                                            disabled={isSaving}
+                                            className="col-span-1"
+                                        >
+                                            {isSaving ? 'Guardando...' : 'Guardar'}
+                                        </Button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
     );
 }

@@ -8,6 +8,7 @@ import tingeso.karting.DTO.PricingRequestDto;
 import tingeso.karting.DTO.PricingResponseDto;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 public class PricingService {
@@ -20,24 +21,28 @@ public class PricingService {
         this.priceConfigService = priceConfigService;
     }
 
-    public PricingResponseDto calculatePrice(PricingRequestDto request){
-
+    public PricingResponseDto calculatePrice(PricingRequestDto request) {
         BigDecimal baseRate = determineBaseRate(request);
 
-        BigDecimal groupDiscount = baseRate.multiply(BigDecimal.valueOf(groupDiscountRate(request.getNumPeople())));
+        BigDecimal groupDiscount = baseRate.multiply(
+            BigDecimal.valueOf(groupDiscountRate(request.getNumPeople())));
 
-        BigDecimal freqDiscount = baseRate.multiply(BigDecimal.valueOf(frequencyDiscountRate(request.getMonthlyVisits())));
+        BigDecimal freqDiscount = baseRate.multiply(
+            BigDecimal.valueOf(frequencyDiscountRate(request.getMonthlyVisits())));
 
         BigDecimal birthdayDiscount = BigDecimal.ZERO;
-        if(request.isBirthday()){
-            birthdayDiscount = baseRate.multiply(BigDecimal.valueOf(birthdayDiscountRate(request.getNumPeople())));
+        if(request.isBirthday()) {
+            birthdayDiscount = baseRate.multiply(
+                BigDecimal.valueOf(birthdayDiscountRate(request.getNumPeople())));
         }
+
         BigDecimal totalDiscount = groupDiscount.add(freqDiscount).add(birthdayDiscount);
         BigDecimal netPrice = baseRate.subtract(totalDiscount);
 
         //iva
         BigDecimal ivaAmount = netPrice.multiply(IVA);
         BigDecimal totalPrice = netPrice.add(ivaAmount);
+
         return PricingResponseDto.builder()
             .baseRate(baseRate)
             .groupDiscount(groupDiscount)
@@ -46,11 +51,9 @@ public class PricingService {
             .tax(ivaAmount)
             .totalAmount(totalPrice)
             .build();
-
     }
 
     private BigDecimal determineBaseRate(PricingRequestDto request) {
-        // Si esta definido vueltas, se prioriza
         if (request.getLaps() != null) {
             switch (request.getLaps()) {
                 case 10: return priceConfigService.getPrice("VUELTAS_10_PRECIO");
@@ -62,31 +65,53 @@ public class PricingService {
                 );
             }
         }
+
         int duration = request.getDuration();
         if (duration <= 30) return priceConfigService.getPrice("VUELTAS_10_PRECIO");
         if (duration <= 35) return priceConfigService.getPrice("VUELTAS_15_PRECIO");
         if (duration <= 40) return priceConfigService.getPrice("VUELTAS_20_PRECIO");
-        throw new IllegalArgumentException("duracion no soportada: " + duration);
+        throw new IllegalArgumentException("duración no soportada: " + duration);
     }
 
-    // Estos métodos siguen igual
     private double groupDiscountRate(int numPeople) {
         if (numPeople <= 2) return 0.0;
-        if (numPeople <= 5) return 0.10;
-        if (numPeople <= 10) return 0.20;
-        return 0.30;
+        if (numPeople <= 5) return priceConfigService.getPrice("DESCUENTO_GRUPO_PEQUENO")
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+            .doubleValue();
+        if (numPeople <= 10) return priceConfigService.getPrice("DESCUENTO_GRUPO_MEDIANO")
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+            .doubleValue();
+        return priceConfigService.getPrice("DESCUENTO_GRUPO_GRANDE")
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+            .doubleValue();
     }
 
     private double frequencyDiscountRate(int visitsPerMonth) {
-        if (visitsPerMonth >= 7) return 0.30;
-        if (visitsPerMonth >= 5) return 0.20;
-        if (visitsPerMonth >= 2) return 0.10;
+        if (visitsPerMonth >= 7) return priceConfigService.getPrice("DESCUENTO_FRECUENCIA_ALTA")
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+            .doubleValue();
+        if (visitsPerMonth >= 5) return priceConfigService.getPrice("DESCUENTO_FRECUENCIA_MEDIA")
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+            .doubleValue();
+        if (visitsPerMonth >= 2) return priceConfigService.getPrice("DESCUENTO_FRECUENCIA_BAJA")
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+            .doubleValue();
         return 0.0;
     }
 
     private double birthdayDiscountRate(int numPeople) {
-        if (numPeople >= 11) return 0.50 * 2 / numPeople;
-        if (numPeople >= 3)  return 0.50 * 1 / numPeople;
-        return 0.0;
+        // Solo aplicamos descuento si hay al menos 3 personas
+        if (numPeople < 3) return 0.0;
+
+        BigDecimal descuentoBase = priceConfigService.getPrice("DESCUENTO_CUMPLEANOS")
+            .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+
+        BigDecimal descuento = descuentoBase;
+        if (numPeople >= 11) {
+            descuento = descuento.multiply(BigDecimal.valueOf(2));
+        }
+
+        // El descuento se reparte entre todos los asistentes
+        return descuento.divide(BigDecimal.valueOf(numPeople), 4, RoundingMode.HALF_UP).doubleValue();
     }
 }
