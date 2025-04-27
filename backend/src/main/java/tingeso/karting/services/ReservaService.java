@@ -11,8 +11,10 @@ import tingeso.karting.entities.ReservaEntity;
 import tingeso.karting.entities.ReservaStatus;
 import tingeso.karting.repositories.ReservaRepository;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -75,4 +77,19 @@ public class ReservaService {
         }
         return responses;
     }
-}
+
+    public List<ReservaResponseDto> getReservationsBetweenDates(OffsetDateTime startDate, OffsetDateTime endDate) {
+        List<ReservaEntity> entities = reservaRepository.findByStartTimeBetween(startDate, endDate);
+        return entities.stream()
+            .map(entity -> {
+                ReservaResponseDto dto = modelMapper.map(entity, ReservaResponseDto.class);
+                // Asegúrate de que todos los campos necesarios estén mapeados
+                dto.setStatus(entity.getStatus().toString());
+                dto.setTotalAmount(entity.getTotalPrice());
+                dto.setBirthdayDiscount(entity.getDiscountBirthday());
+                dto.setFrequencyDiscount(entity.getDiscountFreq());
+                dto.setGroupDiscount(entity.getDiscountGroup());
+                return dto;
+            })
+            .collect(Collectors.toList());
+    }}
