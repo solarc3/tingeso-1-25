@@ -13,7 +13,6 @@ import tingeso.karting.entities.ReservaStatus;
 import tingeso.karting.repositories.ReservaRepository;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +23,7 @@ public class ReservaService {
     private final PricingService pricingService;
     private final ReservaRepository reservaRepository;
     private final ModelMapper modelMapper;
+    private final KartService kartService;
 
     public PricingResponseDto checkAvailability(ReservaRequestDto req) {
         AvailabilityRequestDto aReq = AvailabilityRequestDto.builder()
@@ -82,11 +82,9 @@ public class ReservaService {
             .build();
 
         ReservaEntity saved = reservaRepository.save(entity);
-
-        assigned.forEach(kartId ->
-                             availabilityService.registerKartReservation(kartId, req.getStartTime(), req.getEndTime())
-                        );
-
+// Registramos la reserva completa en el servicio de disponibilidad de una sola vez
+        System.out.println("Registrando nueva reserva ID " + saved.getId() + " en el servicio de disponibilidad");
+        availabilityService.registerReservation(saved);
         // 4) Mapear a DTO de respuesta
         ReservaResponseDto resp = ReservaResponseDto.builder()
             .id(saved.getId())
@@ -132,5 +130,29 @@ public class ReservaService {
     @Deprecated
     public List<ReservaResponseDto> createReservations(ReservaRequestDto req) {
         return List.of(createReservation(req));
+    }
+
+    public KartAvailabilityResponseDto getKartAvailability(OffsetDateTime startTime, OffsetDateTime endTime) {
+        System.out.println("Checking availability for period:");
+        System.out.println("Start: " + startTime);
+        System.out.println("End: " + endTime);
+
+        // Obtenemos todos los karts del servicio KartService
+        List<String> allKarts = kartService.getAllKartIds();
+        int totalKarts = allKarts.size();
+
+        System.out.println("Total karts: " + totalKarts);
+
+        // Obtenemos los karts libres para ese horario
+        List<String> freeKarts = availabilityService.getFreeKarts(startTime, endTime);
+
+        System.out.println("Free karts: " + freeKarts.size());
+        System.out.println("Free kart IDs: " + freeKarts);
+
+        return KartAvailabilityResponseDto.builder()
+            .time(startTime)
+            .totalKarts(totalKarts)
+            .availableKarts(freeKarts.size())
+            .build();
     }
 }

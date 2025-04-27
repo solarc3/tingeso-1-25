@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { getReservations, ReservationResponse } from '@/services/reservationService.ts';
+import { getReservations, checkKartAvailability, ReservationResponse, KartAvailabilityResponse } from '@/services/reservationService.ts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock, Users, Calendar as CalendarIcon } from 'lucide-react';
+import { Clock, Users, Calendar as CalendarIcon, Info } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function ReservationCalendar() {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [reservations, setReservations] = useState<ReservationResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedDayReservations, setSelectedDayReservations] = useState<ReservationResponse[]>([]);
+    const [availabilityMap, setAvailabilityMap] = useState<Record<string, KartAvailabilityResponse>>({});
 
     useEffect(() => {
         const fetchReservations = async () => {
@@ -25,9 +27,17 @@ export default function ReservationCalendar() {
 
                 const data = await getReservations(firstDayOfMonth, lastDayOfMonth);
                 setReservations(data);
-
+                console.log('All reservations:', data);
+                setReservations(data);
                 // Filtrar reservas del día seleccionado
-                updateSelectedDayReservations(date, data);
+                const dayReservations = filterDayReservations(date, data);
+                setSelectedDayReservations(dayReservations);
+                console.log('Day reservations:', dayReservations);
+                setSelectedDayReservations(dayReservations);
+                // Obtener la disponibilidad para cada reserva
+                if (dayReservations.length > 0) {
+                    await fetchAvailabilityForReservations(dayReservations);
+                }
             } catch (error) {
                 console.error('Error fetching reservations:', error);
             } finally {
@@ -36,24 +46,81 @@ export default function ReservationCalendar() {
         };
 
         fetchReservations();
-    }, [date?.getMonth()]);
+    }, [date?.getMonth(), date?.getDate()]);
 
-    const updateSelectedDayReservations = (selectedDate: Date, allReservations = reservations) => {
-        const dayReservations = allReservations.filter(res => {
+    const fetchAvailabilityForReservations = async (dayReservations: ReservationResponse[]) => {
+        const newAvailabilityMap: Record<string, KartAvailabilityResponse> = {};
+
+        // Obtener disponibilidad para cada reserva
+        for (const reservation of dayReservations) {
+            try {
+                console.log('Checking availability for reservation:', reservation.id);
+                console.log('Start time:', reservation.startTime);
+                console.log('End time:', reservation.endTime);
+
+                const availability = await checkKartAvailability(
+                    reservation.startTime,
+                    reservation.endTime
+                );
+
+                console.log('Availability response:', availability);
+                newAvailabilityMap[reservation.id.toString()] = availability;
+            } catch (err) {
+                console.error(`Error checking availability for reservation ${reservation.id}:`, err);
+            }
+        }
+
+        console.log('Final availability map:', newAvailabilityMap);
+        setAvailabilityMap(newAvailabilityMap);
+    };
+
+    const filterDayReservations = (selectedDate: Date, allReservations = reservations) => {
+        return allReservations.filter(res => {
             const resDate = new Date(res.startTime);
             return resDate.getDate() === selectedDate.getDate() &&
                 resDate.getMonth() === selectedDate.getMonth() &&
                 resDate.getFullYear() === selectedDate.getFullYear();
         });
-
-        setSelectedDayReservations(dayReservations);
     };
 
     const handleSelect = (newDate: Date | undefined) => {
         if (newDate) {
             setDate(newDate);
-            updateSelectedDayReservations(newDate);
+            const dayReservations = filterDayReservations(newDate);
+            setSelectedDayReservations(dayReservations);
+
+            // Limpiar el mapa de disponibilidad anterior y obtener nuevo
+            setAvailabilityMap({});
+            if (dayReservations.length > 0) {
+                fetchAvailabilityForReservations(dayReservations);
+            }
         }
+    };
+
+    // Función para renderizar el indicador de disponibilidad
+    const renderAvailabilityBadge = (reservationId: number) => {
+        const availability = availabilityMap[reservationId.toString()];
+
+        if (!availability) {
+            return <span className="text-xs text-muted-foreground">Verificando disponibilidad...</span>;
+        }
+
+        const { availableKarts, totalKarts } = availability;
+        const badgeColor = availableKarts > 5
+            ? "bg-green-100 text-green-800"
+            : availableKarts > 0
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-red-100 text-red-800";
+
+        return (
+            <div className="flex items-center mt-2 gap-1">
+                <Info className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Karts disponibles: </span>
+                <Badge className={badgeColor}>
+                    {availableKarts}/{totalKarts}
+                </Badge>
+            </div>
+        );
     };
 
     return (
@@ -99,18 +166,25 @@ export default function ReservationCalendar() {
                                                     <div className="flex items-center gap-2">
                                                         <Clock className="h-4 w-4 text-muted-foreground" />
                                                         <span className="font-medium">
-                              {format(new Date(res.startTime), 'HH:mm')} - {format(new Date(res.endTime), 'HH:mm')}
-                            </span>
+                                                            {format(new Date(res.startTime), 'HH:mm')} - {format(new Date(res.endTime), 'HH:mm')}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <Users className="h-4 w-4 text-muted-foreground" />
                                                         <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm font-medium">
-                              {res.numPeople} personas
-                            </span>
+                                                            {res.numPeople} personas
+                                                        </span>
                                                     </div>
                                                 </div>
-                                                <div className="mt-2 text-sm text-muted-foreground">
-                                                    {res.status === 'CONFIRMED' ? 'Confirmada' : res.status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
+                                                <div className="mt-2 flex justify-between items-center">
+                                                    <span className={`text-sm ${
+                                                        res.status === 'CONFIRMED' ? 'text-green-600' :
+                                                            res.status === 'PENDING' ? 'text-yellow-600' : 'text-red-600'
+                                                    }`}>
+                                                        {res.status === 'CONFIRMED' ? 'Confirmada' : res.status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
+                                                    </span>
+                                                    {/* Aquí insertamos el indicador de disponibilidad */}
+                                                    {renderAvailabilityBadge(res.id)}
                                                 </div>
                                             </CardContent>
                                         </Card>

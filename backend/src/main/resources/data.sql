@@ -1,12 +1,15 @@
+-- Use CURRENT_DATE (without parentheses) + specific times to set reservation times
+
+-- Reservation 1: Today at 14:00 (2 people)
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '3 HOURS', NOW() + INTERVAL '3 HOURS 30 MINUTES',
-           10, 30, 2, 'Juan Pérez', 'juan@example.com', 'CONFIRMED',
-           17850, 0, 0, 0
+                   CURRENT_DATE + TIME '14:00:00', CURRENT_DATE + TIME '14:30:00',
+                   10, 30, 2, 'Juan Pérez', 'juan@example.com', 'CONFIRMED',
+                   17850, 0, 0, 0
        );
 
 -- Asignar karts
@@ -19,16 +22,16 @@ INSERT INTO reserva_guests (reserva_id, name, email) VALUES
                                                          (1, 'Juan Pérez', 'juan@example.com'),
                                                          (1, 'Ana Pérez', 'ana@example.com');
 
--- Grupo 2: María González - 3 personas
+-- Grupo 2: María González - 3 personas - Today at 16:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '5 HOURS', NOW() + INTERVAL '5 HOURS 35 MINUTES',
-           15, 35, 3, 'María González', 'maria@example.com', 'CONFIRMED',
-           21420, 2000, 0, 0
+                   CURRENT_DATE + TIME '16:00:00', CURRENT_DATE + TIME '16:35:00',
+                   15, 35, 3, 'María González', 'maria@example.com', 'CONFIRMED',
+                   21420, 2000, 0, 0
        );
 
 -- Asignar karts
@@ -43,16 +46,16 @@ INSERT INTO reserva_guests (reserva_id, name, email) VALUES
                                                          (2, 'Pedro López', 'pedro@example.com'),
                                                          (2, 'Luis García', 'luis@example.com');
 
--- Grupo 3: Carlos Rodríguez - 5 personas
+-- Grupo 3: Carlos Rodríguez - 5 personas - Today at 18:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '7 HOURS', NOW() + INTERVAL '7 HOURS 40 MINUTES',
-           20, 40, 5, 'Carlos Rodríguez', 'carlos@example.com', 'CONFIRMED',
-           23800, 5000, 0, 0
+                   CURRENT_DATE + TIME '18:00:00', CURRENT_DATE + TIME '18:40:00',
+                   20, 40, 5, 'Carlos Rodríguez', 'carlos@example.com', 'CONFIRMED',
+                   23800, 5000, 0, 0
        );
 
 -- Asignar karts
@@ -71,16 +74,16 @@ INSERT INTO reserva_guests (reserva_id, name, email) VALUES
                                                          (3, 'Carla Ruiz', 'carla@example.com'),
                                                          (3, 'Raúl Gómez', 'raul@example.com');
 
--- Grupo 4: Ana Martínez - 2 personas al día siguiente
+-- Grupo 4: Ana Martínez - 2 personas - Tomorrow at 15:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '1 DAY 4 HOURS', NOW() + INTERVAL '1 DAY 4 HOURS 30 MINUTES',
-           10, 30, 2, 'Ana Martínez', 'ana.martinez@example.com', 'CONFIRMED',
-           16065, 1500, 0, 0
+                   CURRENT_DATE + INTERVAL '1 DAY' + TIME '15:00:00', CURRENT_DATE + INTERVAL '1 DAY' + TIME '15:30:00',
+                   10, 30, 2, 'Ana Martínez', 'ana.martinez@example.com', 'CONFIRMED',
+                   16065, 1500, 0, 0
        );
 
 -- Asignar karts
@@ -93,16 +96,16 @@ INSERT INTO reserva_guests (reserva_id, name, email) VALUES
                                                          (4, 'Ana Martínez', 'ana.martinez@example.com'),
                                                          (4, 'Miguel Castro', 'miguel@example.com');
 
--- Grupo 5: Roberto Sánchez - 4 personas
+-- Grupo 5: Roberto Sánchez - 4 personas - Tomorrow at 17:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '1 DAY 6 HOURS', NOW() + INTERVAL '1 DAY 6 HOURS 35 MINUTES',
-           15, 35, 4, 'Roberto Sánchez', 'roberto@example.com', 'PENDING',
-           19040, 4000, 0, 0
+                   CURRENT_DATE + INTERVAL '1 DAY' + TIME '17:00:00', CURRENT_DATE + INTERVAL '1 DAY' + TIME '17:35:00',
+                   15, 35, 4, 'Roberto Sánchez', 'roberto@example.com', 'PENDING',
+                   19040, 4000, 0, 0
        );
 
 -- Asignar karts
@@ -119,16 +122,16 @@ INSERT INTO reserva_guests (reserva_id, name, email) VALUES
                                                          (5, 'Carmen Díaz', 'carmen@example.com'),
                                                          (5, 'Sergio Mora', 'sergio@example.com');
 
--- Grupo 6: Felipe Castro - 12 personas (con descuento de cumpleaños)
+-- Grupo 6: Felipe Castro - 12 personas (con descuento de cumpleaños) - 5 days ahead at 14:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '5 DAYS 11 HOURS', NOW() + INTERVAL '5 DAYS 11 HOURS 30 MINUTES',
-           10, 30, 12, 'Felipe Castro', 'felipe@example.com', 'CONFIRMED',
-           11900, 3000, 0, 7500
+                   CURRENT_DATE + INTERVAL '5 DAY' + TIME '14:00:00', CURRENT_DATE + INTERVAL '5 DAY' + TIME '14:30:00',
+                   10, 30, 12, 'Felipe Castro', 'felipe@example.com', 'CONFIRMED',
+                   11900, 3000, 0, 7500
        );
 
 -- Asignar karts
@@ -152,16 +155,16 @@ INSERT INTO reserva_guests (reserva_id, name, email) VALUES
                                                          (6, 'Invitado 10', 'inv10@example.com'),
                                                          (6, 'Invitado 11', 'inv11@example.com');
 
--- Grupo 7: Lucía Morales - cliente frecuente
+-- Grupo 7: Lucía Morales - cliente frecuente - Weekend date (+7 days) at 11:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '10 DAYS 5 HOURS', NOW() + INTERVAL '10 DAYS 5 HOURS 40 MINUTES',
-           20, 40, 1, 'Lucía Morales', 'lucia@example.com', 'CONFIRMED',
-           20187.5, 0, 5000, 0
+                   CURRENT_DATE + INTERVAL '7 DAY' + TIME '11:00:00', CURRENT_DATE + INTERVAL '7 DAY' + TIME '11:40:00',
+                   20, 40, 1, 'Lucía Morales', 'lucia@example.com', 'CONFIRMED',
+                   20187.5, 0, 5000, 0
        );
 
 -- Asignar karts
@@ -172,16 +175,16 @@ INSERT INTO reserva_karts (reserva_id, kart_id) VALUES
 INSERT INTO reserva_guests (reserva_id, name, email) VALUES
     (7, 'Lucía Morales', 'lucia@example.com');
 
--- Grupo 8: Diego Torres - reserva cancelada
+-- Grupo 8: Diego Torres - reserva cancelada - 8 days ahead at 15:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '12 DAYS 3 HOURS', NOW() + INTERVAL '12 DAYS 3 HOURS 30 MINUTES',
-           10, 30, 2, 'Diego Torres', 'diego2@example.com', 'CANCELLED',
-           16065, 1500, 0, 0
+                   CURRENT_DATE + INTERVAL '8 DAY' + TIME '15:00:00', CURRENT_DATE + INTERVAL '8 DAY' + TIME '15:30:00',
+                   10, 30, 2, 'Diego Torres', 'diego2@example.com', 'CANCELLED',
+                   16065, 1500, 0, 0
        );
 
 -- Asignar karts
@@ -194,16 +197,16 @@ INSERT INTO reserva_guests (reserva_id, name, email) VALUES
                                                          (8, 'Diego Torres', 'diego2@example.com'),
                                                          (8, 'Isabel López', 'isabel@example.com');
 
--- Grupo 9: Valentina López - próximo mes
+-- Grupo 9: Valentina López - próximo mes (30 days ahead) at 16:00
 INSERT INTO reserva (
     start_time, end_time, laps, duration, num_people,
     responsible_name, responsible_email, status,
     total_price, discount_group, discount_freq, discount_birthday
 )
 VALUES (
-           NOW() + INTERVAL '30 DAYS 4 HOURS', NOW() + INTERVAL '30 DAYS 4 HOURS 35 MINUTES',
-           15, 35, 6, 'Valentina López', 'valentina@example.com', 'CONFIRMED',
-           19040, 4000, 0, 0
+                   CURRENT_DATE + INTERVAL '30 DAY' + TIME '16:00:00', CURRENT_DATE + INTERVAL '30 DAY' + TIME '16:35:00',
+                   15, 35, 6, 'Valentina López', 'valentina@example.com', 'CONFIRMED',
+                   19040, 4000, 0, 0
        );
 
 -- Asignar karts

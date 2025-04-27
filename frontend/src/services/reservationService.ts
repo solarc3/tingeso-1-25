@@ -45,6 +45,12 @@ export type ReservationResponse = {
     status: string;
 };
 
+export type KartAvailabilityResponse = {
+    time: string;
+    totalKarts: number;
+    availableKarts: number;
+};
+
 export const checkPricing = async (reservationData: ReservationRequest): Promise<PricingResponse> => {
     const data = {
         ...reservationData,
@@ -84,3 +90,13 @@ function ensureTimezone(dateString: string): string {
     }
     return dateString;
 }
+
+export const checkKartAvailability = async (startTime: string, endTime: string): Promise<KartAvailabilityResponse> => {
+    const response = await api.get('/reservations/availability', {
+        params: {
+            startTime,
+            endTime
+        }
+    });
+    return response.data;
+};

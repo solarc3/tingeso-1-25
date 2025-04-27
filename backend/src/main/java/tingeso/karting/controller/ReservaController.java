@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tingeso.karting.DTO.KartAvailabilityResponseDto;
 import tingeso.karting.DTO.PricingResponseDto;
 import tingeso.karting.DTO.ReservaRequestDto;
 import tingeso.karting.DTO.ReservaResponseDto;
@@ -48,5 +49,21 @@ public class ReservaController {
         OffsetDateTime to   = OffsetDateTime.parse(endDate);
         List<ReservaResponseDto> list = service.getReservationsBetweenDates(from, to);
         return ResponseEntity.ok(list);
+    }
+    @GetMapping("/availability")
+    public ResponseEntity<KartAvailabilityResponseDto> checkKartAvailability(
+        @RequestParam("startTime") String startTime,
+        @RequestParam("endTime") String endTime) {
+
+        System.out.println("Received availability check request:");
+        System.out.println("Start time: " + startTime);
+        System.out.println("End time: " + endTime);
+
+        OffsetDateTime start = OffsetDateTime.parse(startTime);
+        OffsetDateTime end = OffsetDateTime.parse(endTime);
+        KartAvailabilityResponseDto availability = service.getKartAvailability(start, end);
+
+        System.out.println("Availability response: " + availability);
+        return ResponseEntity.ok(availability);
     }
 }
