@@ -1,6 +1,8 @@
 import { api } from './api';
 
 export type ReservationRequest = {
+    responsibleName: string;  // renamed from customerName
+    responsibleEmail: string; // new field
     startTime: string;
     endTime: string;
     laps?: number;
@@ -8,6 +10,12 @@ export type ReservationRequest = {
     numPeople: number;
     monthlyVisits: number;
     birthday: boolean;
+    guests: Guest[];  // new field for list of guests
+};
+
+export type Guest = {
+    name: string;
+    email: string;
 };
 
 export type PricingResponse = {
@@ -21,9 +29,12 @@ export type PricingResponse = {
 
 export type ReservationResponse = {
     id: number;
+    responsibleName: string;
+    responsibleEmail: string;
     startTime: string;
     endTime: string;
-    kartId: string;
+    kartIds: string[];  // now an array of IDs instead of a single kartId
+    guests: Guest[];    // list of guests
     numPeople: number;
     baseRate: number;
     groupDiscount: number;
@@ -39,9 +50,9 @@ export const checkPricing = async (reservationData: ReservationRequest): Promise
     return response.data;
 };
 
-export const createReservation = async (reservationData: ReservationRequest): Promise<ReservationResponse[]> => {
+export const createReservation = async (reservationData: ReservationRequest): Promise<ReservationResponse> => {
     const response = await api.post('/reservations', reservationData);
-    return response.data;
+    return response.data;  // Now returns a single object, not an array
 };
 
 export const getReservations = async (startDate: Date, endDate: Date): Promise<ReservationResponse[]> => {

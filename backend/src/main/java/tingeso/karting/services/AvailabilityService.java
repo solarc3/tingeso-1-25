@@ -73,8 +73,12 @@ public class AvailabilityService {
 
 
     public void removeReservation(ReservaEntity res) {
-        calendar.get(res.getKartId())
-            .remove(new Interval(res.getStartTime(), res.getEndTime()));
+        if (res.getKartIds() != null) {
+            for (String kartId : res.getKartIds()) {
+                calendar.get(kartId)
+                    .remove(new Interval(res.getStartTime(), res.getEndTime()));
+            }
+        }
     }
     private boolean isKartFree(NavigableSet<Interval> intervals, OffsetDateTime start, OffsetDateTime end) {
         Interval query = new Interval(start, end);
@@ -85,11 +89,18 @@ public class AvailabilityService {
         return true;
     }
 
+    public void registerKartReservation(String kartId, OffsetDateTime start, OffsetDateTime end) {
+        calendar.get(kartId).add(new Interval(start, end));
+    }
 
     public void registerReservation(ReservaEntity res) {
-        calendar.get(res.getKartId())
-            .add(new Interval(res.getStartTime(), res.getEndTime()));
+        if (res.getKartIds() != null) {
+            for (String kartId : res.getKartIds()) {
+                calendar.get(kartId).add(new Interval(res.getStartTime(), res.getEndTime()));
+            }
+        }
     }
+
     @Data
     @AllArgsConstructor
     private static class Interval {

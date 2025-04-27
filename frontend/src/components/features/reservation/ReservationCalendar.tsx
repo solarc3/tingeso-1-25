@@ -3,6 +3,9 @@ import { Calendar } from '@/components/ui/calendar';
 import { getReservations, ReservationResponse } from '@/services/reservationService.ts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Clock, Users, Calendar as CalendarIcon } from 'lucide-react';
 
 export default function ReservationCalendar() {
     const [date, setDate] = useState<Date | undefined>(new Date());
@@ -10,7 +13,6 @@ export default function ReservationCalendar() {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedDayReservations, setSelectedDayReservations] = useState<ReservationResponse[]>([]);
 
-    // Efecto para cargar reservas cuando cambia la fecha
     useEffect(() => {
         const fetchReservations = async () => {
             if (!date) return;
@@ -36,7 +38,6 @@ export default function ReservationCalendar() {
         fetchReservations();
     }, [date?.getMonth()]);
 
-    // Actualizamos las reservas del día seleccionado cuando cambia la selección
     const updateSelectedDayReservations = (selectedDate: Date, allReservations = reservations) => {
         const dayReservations = allReservations.filter(res => {
             const resDate = new Date(res.startTime);
@@ -48,25 +49,6 @@ export default function ReservationCalendar() {
         setSelectedDayReservations(dayReservations);
     };
 
-    const renderDay = (day: Date) => {
-        // Verificamos si hay reservas para este día
-        const hasReservations = reservations.some(res => {
-            const resDate = new Date(res.startTime);
-            return resDate.getDate() === day.getDate() &&
-                resDate.getMonth() === day.getMonth() &&
-                resDate.getFullYear() === day.getFullYear();
-        });
-
-        return (
-            <div className="relative w-full h-full flex items-center justify-center">
-                <span>{day.getDate()}</span>
-                {hasReservations && (
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div>
-                )}
-            </div>
-        );
-    };
-
     const handleSelect = (newDate: Date | undefined) => {
         if (newDate) {
             setDate(newDate);
@@ -75,49 +57,70 @@ export default function ReservationCalendar() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-center">
-                <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={handleSelect}
-                    locale={es}
-                    className="border rounded-md shadow"
-                />
-            </div>
+        <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                {/* Calendario con altura fija y sin modifiers */}
+                <div className="flex justify-center h-[380px]">
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={handleSelect}
+                        locale={es}
+                        className="h-full border rounded-xl shadow-md p-4 bg-card"
+                    />
+                </div>
 
-            {isLoading ? (
-                <div className="py-4 text-center">Cargando reservas...</div>
-            ) : (
-                <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-3">
-                        Reservas para {date && format(date, "d 'de' MMMM, yyyy", { locale: es })}
+                {/* Panel de reservas con mismo alto */}
+                <div className="flex flex-col h-[380px]">
+                    <h3 className="text-xl font-medium mb-4 flex items-center">
+                        <CalendarIcon className="mr-2 h-5 w-5" />
+                        {date && format(date, "d 'de' MMMM, yyyy", { locale: es })}
                     </h3>
 
-                    {selectedDayReservations.length === 0 ? (
-                        <p className="text-muted-foreground">No hay reservas para este día</p>
+                    {isLoading ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
                     ) : (
-                        <div className="space-y-2">
-                            {selectedDayReservations.map(res => (
-                                <div key={res.id} className="p-3 border rounded-md bg-muted/30">
-                                    <div className="flex justify-between">
-                    <span className="font-medium">
-                      {format(new Date(res.startTime), 'HH:mm')} -
-                        {format(new Date(res.endTime), 'HH:mm')}
-                    </span>
-                                        <span className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded">
-                      {res.numPeople} personas
-                    </span>
-                                    </div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                        Kart: {res.kartId}
-                                    </div>
+                        <div className="flex-1 overflow-y-auto pr-2">
+                            {selectedDayReservations.length === 0 ? (
+                                <div className="bg-muted/30 rounded-lg p-8 text-center h-full flex flex-col items-center justify-center border-2 border-dashed">
+                                    <p className="text-muted-foreground mb-4">No hay reservas para este día</p>
+                                    <Button asChild>
+                                        <a href="/booking">Reservar este día</a>
+                                    </Button>
                                 </div>
-                            ))}
+                            ) : (
+                                <div className="space-y-3">
+                                    {selectedDayReservations.map(res => (
+                                        <Card key={res.id} className="border shadow-sm hover:shadow-md transition-all">
+                                            <CardContent className="p-4">
+                                                <div className="flex justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="font-medium">
+                              {format(new Date(res.startTime), 'HH:mm')} - {format(new Date(res.endTime), 'HH:mm')}
+                            </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Users className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm font-medium">
+                              {res.numPeople} personas
+                            </span>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2 text-sm text-muted-foreground">
+                                                    {res.status === 'CONFIRMED' ? 'Confirmada' : res.status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }

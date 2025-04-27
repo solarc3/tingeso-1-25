@@ -1,5 +1,3 @@
-# Este archivo debe estar en: pep1/deployment/docker-compose.dev.yml
-
 services:
   backend:
     build:

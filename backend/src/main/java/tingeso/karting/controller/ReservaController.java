@@ -19,22 +19,34 @@ public class ReservaController {
     private final ReservaService service;
 
     @PostMapping("/check")
-    public ResponseEntity<PricingResponseDto> check(@RequestBody ReservaRequestDto req) {
-        return ResponseEntity.ok(service.checkAvailability(req));
+    public ResponseEntity<PricingResponseDto> checkAvailability(
+        @RequestBody ReservaRequestDto req
+                                                               ) {
+        PricingResponseDto pricing = service.checkAvailability(req);
+        return ResponseEntity.ok(pricing);
     }
 
+    /**
+     * Crea una reserva con:
+     *  – lista de kartIds,
+     *  – responsable (nombre + email),
+     *  – lista de invitados (name+email).
+     */
     @PostMapping
-    public ResponseEntity<List<ReservaResponseDto>> create(@RequestBody  ReservaRequestDto req) {
-        List<ReservaResponseDto> creado = service.createReservations(req);
-        return new ResponseEntity<>(creado, HttpStatus.CREATED);
+    public ResponseEntity<ReservaResponseDto> createReservation(
+        @RequestBody ReservaRequestDto req
+                                                               ) {
+        ReservaResponseDto created = service.createReservation(req);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
+
     @GetMapping
     public ResponseEntity<List<ReservaResponseDto>> getReservations(
         @RequestParam("startDate") String startDate,
-        @RequestParam("endDate") String endDate) {
-        OffsetDateTime start = OffsetDateTime.parse(startDate);
-        OffsetDateTime end = OffsetDateTime.parse(endDate);
-        List<ReservaResponseDto> reservations = service.getReservationsBetweenDates(start, end);
-        return ResponseEntity.ok(reservations);
+        @RequestParam("endDate")   String endDate) {
+        OffsetDateTime from = OffsetDateTime.parse(startDate);
+        OffsetDateTime to   = OffsetDateTime.parse(endDate);
+        List<ReservaResponseDto> list = service.getReservationsBetweenDates(from, to);
+        return ResponseEntity.ok(list);
     }
 }

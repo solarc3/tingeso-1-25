@@ -6,6 +6,7 @@ import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import BookingPage from './pages/BookingPage';
 import ConfirmationPage from './pages/ConfirmationPage';
+import AdminPage from './pages/AdminPage';  // Import the new admin page
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -15,6 +16,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route index element={<HomePage />} />
                     <Route path="booking" element={<BookingPage />} />
                     <Route path="confirmation" element={<ConfirmationPage />} />
+                    <Route path="admin" element={<AdminPage />} />  {/* Add admin route */}
                 </Route>
             </Routes>
         </BrowserRouter>

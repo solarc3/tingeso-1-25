@@ -9,19 +9,18 @@ import { es } from 'date-fns/locale';
 export default function ConfirmationPage() {
     const location = useLocation();
     const navigate = useNavigate();
-    const reservations = location.state?.reservation as ReservationResponse[] | undefined;
+    const reservation = location.state?.reservation as ReservationResponse | undefined;
 
     useEffect(() => {
-        if (!reservations || reservations.length === 0) {
+        if (!reservation) {
             navigate('/booking');
         }
-    }, [reservations, navigate]);
+    }, [reservation, navigate]);
 
-    if (!reservations || reservations.length === 0) {
+    if (!reservation) {
         return <div className="container mx-auto py-8 text-center">Redirigiendo...</div>;
     }
 
-    const firstReservation = reservations[0];
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
 
@@ -44,22 +43,30 @@ export default function ConfirmationPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p className="text-sm text-muted-foreground">Fecha y Hora</p>
-                                <p className="font-medium">{formatDateTime(firstReservation.startTime)}</p>
+                                <p className="font-medium">{formatDateTime(reservation.startTime)}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Duración</p>
                                 <p className="font-medium">
-                                    {format(new Date(firstReservation.startTime), 'HH:mm')} -
-                                    {format(new Date(firstReservation.endTime), 'HH:mm')}
+                                    {format(new Date(reservation.startTime), 'HH:mm')} -
+                                    {format(new Date(reservation.endTime), 'HH:mm')}
                                 </p>
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Número de Personas</p>
-                                <p className="font-medium">{firstReservation.numPeople}</p>
+                                <p className="font-medium">{reservation.numPeople}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Responsable</p>
+                                <p className="font-medium">{reservation.responsibleName}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Email de Contacto</p>
+                                <p className="font-medium">{reservation.responsibleEmail}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Monto Total</p>
-                                <p className="font-medium text-lg">{formatCurrency(firstReservation.totalAmount)}</p>
+                                <p className="font-medium text-lg">{formatCurrency(reservation.totalAmount)}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -71,12 +78,29 @@ export default function ConfirmationPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {reservations.map((res) => (
-                                <div key={res.id} className="bg-muted p-3 rounded-md text-center">
-                                    <p className="font-semibold">{res.kartId}</p>
+                            {reservation.kartIds.map((kartId, index) => (
+                                <div key={index} className="bg-muted p-3 rounded-md text-center">
+                                    <p className="font-semibold">{kartId}</p>
                                 </div>
                             ))}
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Display Guests */}
+                <Card className="mb-8">
+                    <CardHeader>
+                        <CardTitle>Participantes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="divide-y">
+                            {reservation.guests.map((guest, index) => (
+                                <li key={index} className="py-2">
+                                    <p className="font-medium">{guest.name}</p>
+                                    <p className="text-sm text-muted-foreground">{guest.email}</p>
+                                </li>
+                            ))}
+                        </ul>
                     </CardContent>
                 </Card>
 
