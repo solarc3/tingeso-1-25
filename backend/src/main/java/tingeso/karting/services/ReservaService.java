@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import tingeso.karting.DTO.*;
+import tingeso.karting.entities.ComprobanteEntity;
 import tingeso.karting.entities.GuestEmbeddable;
 import tingeso.karting.entities.ReservaEntity;
 import tingeso.karting.entities.ReservaStatus;
@@ -24,7 +25,7 @@ public class ReservaService {
     private final ReservaRepository reservaRepository;
     private final ModelMapper modelMapper;
     private final KartService kartService;
-
+    private final ComprobanteService comprobanteService;
     public PricingResponseDto checkAvailability(ReservaRequestDto req) {
         AvailabilityRequestDto aReq = AvailabilityRequestDto.builder()
             .startTime(req.getStartTime())
@@ -86,6 +87,10 @@ public class ReservaService {
         System.out.println("Registrando nueva reserva ID " + saved.getId() + " en el servicio de disponibilidad");
         availabilityService.registerReservation(saved);
         // 4) Mapear a DTO de respuesta
+        // Generar y enviar comprobante automaticamente
+        ComprobanteEntity comprobante = comprobanteService.generarComprobante(saved);
+        comprobanteService.enviarComprobantePorEmail(comprobante.getId());
+
         ReservaResponseDto resp = ReservaResponseDto.builder()
             .id(saved.getId())
             .responsibleName(saved.getResponsibleName())
