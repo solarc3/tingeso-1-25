@@ -20,6 +20,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       SERVER_PORT: 8080
+      SPRING_MAIL_HOST: smtp.gmail.com
     depends_on:
       - postgres
     restart: unless-stopped
@@ -35,6 +36,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       SERVER_PORT: 8080
+      SPRING_MAIL_HOST: smtp.gmail.com
     depends_on:
       - postgres
     restart: unless-stopped
@@ -50,6 +52,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       SERVER_PORT: 8080
+      SPRING_MAIL_HOST: smtp.gmail.com
     depends_on:
       - postgres
     restart: unless-stopped
