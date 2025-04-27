@@ -66,4 +66,9 @@ public class ReservaController {
         System.out.println("Availability response: " + availability);
         return ResponseEntity.ok(availability);
     }
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ReservaResponseDto> cancelReservation(@PathVariable Long id) {
+        ReservaResponseDto cancelled = service.cancelReservation(id);
+        return ResponseEntity.ok(cancelled);
+    }
 }

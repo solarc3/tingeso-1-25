@@ -160,4 +160,33 @@ public class ReservaService {
             .availableKarts(freeKarts.size())
             .build();
     }
+    public ReservaResponseDto cancelReservation(Long id) {
+        ReservaEntity reservation = reservaRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva no encontrada"));
+
+        if (reservation.getStatus() == ReservaStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La reserva ya está cancelada");
+        }
+
+        reservation.setStatus(ReservaStatus.CANCELLED);
+
+        availabilityService.removeReservation(reservation);
+
+        ReservaEntity updated = reservaRepository.save(reservation);
+
+        // Convertir y devolver DTO
+        ReservaResponseDto dto = modelMapper.map(updated, ReservaResponseDto.class);
+        dto.setStatus(updated.getStatus().toString());
+        dto.setTotalAmount(updated.getTotalPrice());
+        dto.setBirthdayDiscount(updated.getDiscountBirthday());
+        dto.setFrequencyDiscount(updated.getDiscountFreq());
+        dto.setGroupDiscount(updated.getDiscountGroup());
+
+        // Mapear los invitados, ya que ModelMapper no los incluye automáticamente
+        dto.setGuests(updated.getGuests().stream()
+                          .map(g -> new GuestDto(g.getName(), g.getEmail()))
+                          .collect(Collectors.toList()));
+
+        return dto;
+    }
 }

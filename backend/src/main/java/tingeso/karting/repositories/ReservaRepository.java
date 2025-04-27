@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 @Repository
-public interface ReservaRepository extends JpaRepository<ReservaEntity, Integer> {
+public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
 
     List<ReservaEntity> findByStatus(ReservaStatus status);
     List<ReservaEntity> findByStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
