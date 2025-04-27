@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,7 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
         });
 
     // Add field array for guests
-    const { fields, remove, replace } = useFieldArray({
+    const { fields, replace } = useFieldArray({
         control,
         name: "guests"
     });
