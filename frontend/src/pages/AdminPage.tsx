@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { getReservations, ReservationResponse } from '@/services/reservationService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminReservationView from '@/components/features/reservation/AdminReservationView';
+import PriceConfigPanel from '@/components/features/admin/PriceConfigPanel';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format, subDays, addDays } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from "sonner";
 
 export default function AdminPage() {
     const [reservations, setReservations] = useState<ReservationResponse[]>([]);
@@ -24,6 +27,7 @@ export default function AdminPage() {
             setReservations(data);
         } catch (error) {
             console.error('Error fetching reservations:', error);
+            toast.error("Error al cargar las reservas");
         } finally {
             setIsLoading(false);
         }
@@ -44,55 +48,68 @@ export default function AdminPage() {
         <div className="container mx-auto py-8">
             <h1 className="text-3xl font-bold mb-6">Panel de Administración</h1>
 
-            <Card className="mb-8">
-                <CardHeader>
-                    <CardTitle>Filtrar Reservas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <Label htmlFor="start-date">Fecha Inicial</Label>
-                            <Input
-                                id="start-date"
-                                type="date"
-                                value={format(startDate, 'yyyy-MM-dd')}
-                                onChange={(e) => handleDateChange(e, true)}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="end-date">Fecha Final</Label>
-                            <Input
-                                id="end-date"
-                                type="date"
-                                value={format(endDate, 'yyyy-MM-dd')}
-                                onChange={(e) => handleDateChange(e, false)}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div className="flex items-end">
-                            <Button onClick={fetchReservations} className="w-full">
-                                Buscar Reservas
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="reservations">
+                <TabsList className="mb-8">
+                    <TabsTrigger value="reservations">Reservas</TabsTrigger>
+                    <TabsTrigger value="prices">Precios</TabsTrigger>
+                </TabsList>
 
-            {isLoading ? (
-                <div className="text-center py-8">
-                    <p>Cargando reservas...</p>
-                </div>
-            ) : (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Reservas ({reservations.length})</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <AdminReservationView reservations={reservations} />
-                    </CardContent>
-                </Card>
-            )}
+                <TabsContent value="reservations">
+                    <Card className="mb-8">
+                        <CardHeader>
+                            <CardTitle>Filtrar Reservas</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <Label htmlFor="start-date">Fecha Inicial</Label>
+                                    <Input
+                                        id="start-date"
+                                        type="date"
+                                        value={format(startDate, 'yyyy-MM-dd')}
+                                        onChange={(e) => handleDateChange(e, true)}
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="end-date">Fecha Final</Label>
+                                    <Input
+                                        id="end-date"
+                                        type="date"
+                                        value={format(endDate, 'yyyy-MM-dd')}
+                                        onChange={(e) => handleDateChange(e, false)}
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div className="flex items-end">
+                                    <Button onClick={fetchReservations} className="w-full">
+                                        Buscar Reservas
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {isLoading ? (
+                        <div className="text-center py-8">
+                            <p>Cargando reservas...</p>
+                        </div>
+                    ) : (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Reservas ({reservations.length})</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <AdminReservationView reservations={reservations} />
+                            </CardContent>
+                        </Card>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="prices">
+                    <PriceConfigPanel />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

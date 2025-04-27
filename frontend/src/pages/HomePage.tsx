@@ -25,10 +25,6 @@ export default function HomePage() {
 
             <section className="my-16">
                 <h2 className="text-3xl font-bold mb-6 text-center">Calendario de Disponibilidad</h2>
-                <p className="text-center text-lg mb-8 max-w-2xl mx-auto">
-                    Consulta nuestra disponibilidad y planifica tu próxima carrera con amigos o familia.
-                </p>
-
                 <Card className="shadow-lg border-2">
                     <CardHeader className="border-b bg-muted/30">
                         <CardTitle className="text-2xl">Reservas Disponibles</CardTitle>
