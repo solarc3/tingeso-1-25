@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 export function TestConnection() {
     const [serverInfo, setServerInfo] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const apiUrl = "http://localhost:8080/api";
+    const apiUrl = "/api";
 
     useEffect(() => {
         fetch(`${apiUrl}/me`)
