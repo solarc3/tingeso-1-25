@@ -46,13 +46,25 @@ export type ReservationResponse = {
 };
 
 export const checkPricing = async (reservationData: ReservationRequest): Promise<PricingResponse> => {
-    const response = await api.post('/reservations/check', reservationData);
+    const data = {
+        ...reservationData,
+        startTime: ensureTimezone(reservationData.startTime),
+        endTime: ensureTimezone(reservationData.endTime),
+    };
+
+    const response = await api.post('/reservations/check', data);
     return response.data;
 };
 
 export const createReservation = async (reservationData: ReservationRequest): Promise<ReservationResponse> => {
-    const response = await api.post('/reservations', reservationData);
-    return response.data;  // Now returns a single object, not an array
+    const data = {
+        ...reservationData,
+        startTime: ensureTimezone(reservationData.startTime),
+        endTime: ensureTimezone(reservationData.endTime),
+    };
+
+    const response = await api.post('/reservations', data);
+    return response.data;
 };
 
 export const getReservations = async (startDate: Date, endDate: Date): Promise<ReservationResponse[]> => {
@@ -64,3 +76,11 @@ export const getReservations = async (startDate: Date, endDate: Date): Promise<R
     });
     return response.data;
 };
+
+function ensureTimezone(dateString: string): string {
+    const date = new Date(dateString);
+    if (!dateString.endsWith('Z') && !dateString.includes('+')) {
+        return date.toISOString(); // Convert to ISO with timezone
+    }
+    return dateString;
+}

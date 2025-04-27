@@ -21,7 +21,19 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [time, setTime] = useState<string>("14:00");
     const [duration, setDuration] = useState<number>(30);
+    const getAvailableHours = (selectedDate: Date | undefined) => {
+        if (!selectedDate) return [];
 
+        const isWeekend = [0, 6].includes(selectedDate.getDay()); // 0 = Sunday, 6 = Saturday
+        const startHour = isWeekend ? 10 : 14;
+        const endHour = 22; // End hour is always 22:00 (10 PM)
+
+        const hours = [];
+        for (let hour = startHour; hour < endHour; hour++) {
+            hours.push(`${hour.toString().padStart(2, '0')}:00`);
+        }
+        return hours;
+    };
     const { register, handleSubmit, watch, setValue, control, formState: { errors } } =
         useForm<ReservationRequest>({
             defaultValues: {
@@ -58,7 +70,14 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
             replace(updatedGuests);
         }
     }, [responsibleName, responsibleEmail, fields.length, replace]);
-
+    useEffect(() => {
+        if (date) {
+            const availableHours = getAvailableHours(date);
+            if (availableHours.length > 0 && !availableHours.includes(time)) {
+                setTime(availableHours[0]); // Default to first available time
+            }
+        }
+    }, [date]);
     // Sync number of guests with numPeople
     useEffect(() => {
         const currentGuests = fields.length;
@@ -134,6 +153,9 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
                                     setDate(newDate);
                                 }}
                                 locale={es}
+                                disabled={(date) => {
+                                    return date < new Date(new Date().setHours(0, 0, 0, 0));
+                                }}
                             />
                         </PopoverContent>
                     </Popover>
@@ -184,15 +206,11 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
                             <SelectValue placeholder="Selecciona hora" />
                         </SelectTrigger>
                         <SelectContent>
-                            {Array.from({ length: 9 }).map((_, i) => {
-                                const hour = 14 + i; // De 14:00 a 22:00 (lunes a viernes)
-                                const timeValue = `${hour}:00`;
-                                return (
-                                    <SelectItem key={timeValue} value={timeValue}>
-                                        {timeValue}
-                                    </SelectItem>
-                                );
-                            })}
+                            {getAvailableHours(date).map((timeValue) => (
+                                <SelectItem key={timeValue} value={timeValue}>
+                                    {timeValue}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
