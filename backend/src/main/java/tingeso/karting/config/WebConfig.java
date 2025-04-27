@@ -9,8 +9,16 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOrigins("http://localhost:5173", "https://tingeso.solarworks.cl")
+            .allowedOrigins(
+                "http://localhost:5173",
+                "https://tingeso.solarworks.cl",
+                "http://frontend:5173",
+                "http://karting-frontend:5173"
+                           )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowCredentials(true);
+            .allowedHeaders("*")
+            .exposedHeaders("Authorization")
+            .allowCredentials(true)
+            .maxAge(3600);
     }
 }
