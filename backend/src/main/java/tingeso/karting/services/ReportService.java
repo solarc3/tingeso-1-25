@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import tingeso.karting.DTO.ReportEntryDto;
 import tingeso.karting.DTO.ReportResponseDto;
 import tingeso.karting.entities.ReservaEntity;
+import tingeso.karting.entities.ReservaStatus;
 import tingeso.karting.repositories.ReservaRepository;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +23,12 @@ public class ReportService {
     private final ReservaRepository reservaRepository;
 
     public ReportResponseDto getLapsByRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
-        List<ReservaEntity> reservations = reservaRepository.findByStartTimeBetween(startDate, endDate);
+        List<ReservaEntity> allReservations = reservaRepository.findByStartTimeBetween(startDate, endDate);
+
+        // Filtrar solo las reservas confirmadas
+        List<ReservaEntity> reservations = allReservations.stream()
+            .filter(r -> r.getStatus() == ReservaStatus.CONFIRMED)
+            .collect(Collectors.toList());
 
         // Group by laps
         Map<Integer, List<ReservaEntity>> reservationsByLaps = new HashMap<>();
@@ -63,7 +70,12 @@ public class ReportService {
     }
 
     public ReportResponseDto getPeopleByRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
-        List<ReservaEntity> reservations = reservaRepository.findByStartTimeBetween(startDate, endDate);
+        List<ReservaEntity> allReservations = reservaRepository.findByStartTimeBetween(startDate, endDate);
+
+        // Filtrar solo las reservas confirmadas
+        List<ReservaEntity> reservations = allReservations.stream()
+            .filter(r -> r.getStatus() == ReservaStatus.CONFIRMED)
+            .collect(Collectors.toList());
 
         // Define people categories
         Map<String, List<ReservaEntity>> reservationsByPeopleCategory = new HashMap<>();
