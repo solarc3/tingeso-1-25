@@ -84,13 +84,13 @@ public class ComprobanteService {
     private String generarContenidoHtml(ReservaEntity reserva) {
         StringBuilder html = new StringBuilder();
         html.append("<html><head><style>");
-        html.append("body { font-family: Arial, sans-serif; font-size: 12px; }"); // Fuente más pequeña
-        html.append("h1 { font-size: 18px; }"); // Título principal más pequeño
-        html.append("h2 { font-size: 16px; }"); // Subtítulos más pequeños
+        html.append("body { font-family: Arial, sans-serif; font-size: 12px; }");
+        html.append("h1 { font-size: 18px; }");
+        html.append("h2 { font-size: 16px; }");
         html.append("table { border-collapse: collapse; width: 100%; }");
-        html.append("th, td { border: 1px solid #ddd; padding: 6px; text-align: left; font-size: 11px; }"); // Celdas más pequeñas
+        html.append("th, td { border: 1px solid #ddd; padding: 6px; text-align: left; font-size: 11px; }");
         html.append("th { background-color: #f2f2f2; }");
-        html.append(".email-cell { word-break: break-word; }"); // Para emails largos
+        html.append(".email-cell { word-break: break-word; }");
         html.append("</style></head><body>");
 
         html.append("<h1>Comprobante de Reserva - KartingRM</h1>");
@@ -111,56 +111,74 @@ public class ComprobanteService {
         html.append("<tr>");
         html.append("<th>Nombre</th>");
         html.append("<th class='email-cell'>Email</th>");
-        html.append("<th>Tarifa</th>"); // Abreviado
-        html.append("<th>Desc. Grupo</th>"); // Abreviado
-        html.append("<th>Desc. Frec.</th>"); // Abreviado
-        html.append("<th>Desc. Cumple</th>"); // Abreviado
+        html.append("<th>Tarifa</th>");
+        html.append("<th>Desc. Grupo</th>");
+        html.append("<th>Desc. Frec.</th>");
+        html.append("<th>Desc. Cumple</th>");
         html.append("<th>IVA</th>");
         html.append("<th>Total</th>");
         html.append("</tr>");
 
-        // Calcular precios individuales (sin cambios)
-        BigDecimal tarifaBase = reserva.getTotalPrice().divide(
-            BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
-        BigDecimal descuentoGrupo = BigDecimal.ZERO;
-        BigDecimal descuentoFreq = BigDecimal.ZERO;
-        BigDecimal descuentoBirthday = BigDecimal.ZERO;
+        // Calcular valores por persona correctamente
+        // Primero calculamos el precio base por persona (antes de descuentos)
+        BigDecimal precioBaseTotal = reserva.getTotalPrice();
+        BigDecimal totalDescuentos = BigDecimal.ZERO;
 
         if (reserva.getDiscountGroup() != null) {
-            descuentoGrupo = reserva.getDiscountGroup().divide(
-                BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
+            totalDescuentos = totalDescuentos.add(reserva.getDiscountGroup());
         }
-
         if (reserva.getDiscountFreq() != null) {
-            descuentoFreq = reserva.getDiscountFreq().divide(
-                BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
+            totalDescuentos = totalDescuentos.add(reserva.getDiscountFreq());
         }
-
         if (reserva.getDiscountBirthday() != null) {
-            descuentoBirthday = reserva.getDiscountBirthday().divide(
+            totalDescuentos = totalDescuentos.add(reserva.getDiscountBirthday());
+        }
+
+        // Precio sin IVA (para calcular el IVA correctamente)
+        BigDecimal precioSinIva = precioBaseTotal.divide(new BigDecimal("1.19"), 2, RoundingMode.HALF_UP);
+        BigDecimal totalIva = precioBaseTotal.subtract(precioSinIva);
+
+        // Precio base individual (antes de descuentos)
+        BigDecimal precioBaseTotalSinDescuentos = precioSinIva.add(totalDescuentos);
+        BigDecimal tarifaBaseIndividual = precioBaseTotalSinDescuentos.divide(
+            BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
+
+        // Descuentos individuales
+        BigDecimal descuentoGrupoIndividual = BigDecimal.ZERO;
+        BigDecimal descuentoFreqIndividual = BigDecimal.ZERO;
+        BigDecimal descuentoBirthdayIndividual = BigDecimal.ZERO;
+
+        if (reserva.getDiscountGroup() != null && reserva.getDiscountGroup().compareTo(BigDecimal.ZERO) > 0) {
+            descuentoGrupoIndividual = reserva.getDiscountGroup().divide(
                 BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
         }
 
-        // Iterar sobre los invitados (mismo código)
+        if (reserva.getDiscountFreq() != null && reserva.getDiscountFreq().compareTo(BigDecimal.ZERO) > 0) {
+            descuentoFreqIndividual = reserva.getDiscountFreq().divide(
+                BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
+        }
+
+        if (reserva.getDiscountBirthday() != null && reserva.getDiscountBirthday().compareTo(BigDecimal.ZERO) > 0) {
+            descuentoBirthdayIndividual = reserva.getDiscountBirthday().divide(
+                BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
+        }
+
+        // IVA y total individual
+        BigDecimal ivaIndividual = totalIva.divide(
+            BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
+        BigDecimal totalIndividual = precioBaseTotal.divide(
+            BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
+
+        // Iterar sobre los invitados
         for (GuestEmbeddable guest : reserva.getGuests()) {
             html.append("<tr>");
             html.append("<td>" + guest.getName() + "</td>");
             html.append("<td class='email-cell'>" + guest.getEmail() + "</td>");
-
-            // Precio individual (ya con descuentos aplicados)
-            BigDecimal totalIndividual = tarifaBase.subtract(descuentoGrupo)
-                .subtract(descuentoFreq)
-                .subtract(descuentoBirthday);
-
-            // Calcular el subtotal (sin IVA) a partir del total
-            BigDecimal subtotalIndividual = totalIndividual.divide(new BigDecimal("1.19"), 2, RoundingMode.HALF_UP);
-            BigDecimal iva = totalIndividual.subtract(subtotalIndividual);
-
-            html.append("<td>" + formatCurrency(tarifaBase) + "</td>");
-            html.append("<td>" + formatCurrency(descuentoGrupo) + "</td>");
-            html.append("<td>" + formatCurrency(descuentoFreq) + "</td>");
-            html.append("<td>" + formatCurrency(descuentoBirthday) + "</td>");
-            html.append("<td>" + formatCurrency(iva) + "</td>");
+            html.append("<td>" + formatCurrency(tarifaBaseIndividual) + "</td>");
+            html.append("<td>" + formatCurrency(descuentoGrupoIndividual) + "</td>");
+            html.append("<td>" + formatCurrency(descuentoFreqIndividual) + "</td>");
+            html.append("<td>" + formatCurrency(descuentoBirthdayIndividual) + "</td>");
+            html.append("<td>" + formatCurrency(ivaIndividual) + "</td>");
             html.append("<td>" + formatCurrency(totalIndividual) + "</td>");
             html.append("</tr>");
         }
@@ -170,11 +188,10 @@ public class ComprobanteService {
         // Total general (sin cambios)
         html.append("<h2>Total a Pagar</h2>");
         html.append("<p>Subtotal: ")
-            .append(formatCurrency(reserva.getTotalPrice()
-                                       .subtract(calcularIVA(reserva.getTotalPrice()))))
+            .append(formatCurrency(precioSinIva))
             .append("</p>");
         html.append("<p>IVA (19%): ")
-            .append(formatCurrency(calcularIVA(reserva.getTotalPrice())))
+            .append(formatCurrency(totalIva))
             .append("</p>");
         html.append("<p>Total: " + formatCurrency(reserva.getTotalPrice()) + "</p>");
 
