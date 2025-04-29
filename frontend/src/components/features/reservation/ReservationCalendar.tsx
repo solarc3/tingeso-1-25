@@ -176,7 +176,6 @@ export default function ReservationCalendar() {
                                                     }`}>
                                                         {res.status === 'CONFIRMED' ? 'Confirmada' : res.status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
                                                     </span>
-                                                    {/* Aquí insertamos el indicador de disponibilidad */}
                                                     {renderAvailabilityBadge(res.id)}
                                                 </div>
                                             </CardContent>

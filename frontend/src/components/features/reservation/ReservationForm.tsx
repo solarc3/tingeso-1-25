@@ -8,7 +8,6 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, addMinutes } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { ReservationRequest, PricingResponse, checkPricing } from '@/services/reservationService.ts';
 
 interface ReservationFormProps {
@@ -99,7 +98,6 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
         }
     }, [numPeople, fields.length, replace]);
 
-    // Calcular precio cuando cambian valores
     useEffect(() => {
         if (!date || !time) return;
 
@@ -142,7 +140,7 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start text-left font-normal mt-1">
-                                {date ? format(date, "d 'de' MMMM, yyyy", { locale: es }) : "Selecciona una fecha"}
+                                {date ? format(date, "d 'de' MMMM, yyyy") : "Selecciona una fecha"}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -152,7 +150,6 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
                                 onSelect={(newDate) => {
                                     setDate(newDate);
                                 }}
-                                locale={es}
                                 disabled={(date) => {
                                     return date < new Date(new Date().setHours(0, 0, 0, 0));
                                 }}
