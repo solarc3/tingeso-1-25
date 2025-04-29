@@ -10,9 +10,7 @@ export default function Header() {
                 throw new Error(`Error: ${response.status}`);
             }
             const data = await response.text();
-            toast.success(`Servidor respondiendo: ${data}`, {
-                description: `Timestamp: ${new Date().toLocaleTimeString()}`
-            });
+            toast.success(`Servidor respondiendo: ${data}`);
         } catch (error) {
             console.error('Error conectando con el servidor:', error);
             toast.error(`Error conectando con el servidor: ${error instanceof Error ? error.message : 'Desconocido'}`);

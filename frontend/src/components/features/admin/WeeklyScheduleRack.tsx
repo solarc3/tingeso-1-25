@@ -6,7 +6,7 @@ import { addDays, format, startOfWeek, endOfWeek, addMinutes, isSameDay, parseIS
 import { es } from 'date-fns/locale';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import { toast } from "sonner";
 
 export default function WeeklyScheduleRack() {
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -216,99 +216,111 @@ export default function WeeklyScheduleRack() {
             {selectedReservations.length > 0 && (
                 <Dialog open={showDetails} onOpenChange={setShowDetails}>
                     <DialogContent className="max-w-3xl">
-                        <DialogHeader>
-                            <DialogTitle className="flex justify-between items-center">
-                                <span>Detalles de la Reserva</span>
-                                {selectedReservations.length > 1 && (
-                                    <div className="text-sm font-normal flex items-center">
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={prevReservation}
-                                            disabled={activeReservationIndex === 0}
-                                        >
-                                            <ChevronLeft className="h-4 w-4" />
-                                        </Button>
-                                        <span className="mx-2">
-                                            {activeReservationIndex + 1} de {selectedReservations.length}
-                                        </span>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            onClick={nextReservation}
-                                            disabled={activeReservationIndex === selectedReservations.length - 1}
-                                        >
-                                            <ChevronRight className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                )}
-                            </DialogTitle>
-                        </DialogHeader>
-
-                        {selectedReservations.length > 0 && (
-                            <div className="space-y-4 mt-2">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Responsable</p>
-                                        <p className="font-medium">{selectedReservations[activeReservationIndex].responsibleName}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Email</p>
-                                        <p className="font-medium">{selectedReservations[activeReservationIndex].responsibleEmail}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Horario</p>
-                                        <p className="font-medium">
-                                            {format(parseISO(selectedReservations[activeReservationIndex].startTime), 'HH:mm')} -
-                                            {format(parseISO(selectedReservations[activeReservationIndex].endTime), 'HH:mm')}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Karts</p>
-                                        <p className="font-medium">{selectedReservations[activeReservationIndex].numPeople}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Monto</p>
-                                        <p className="font-medium">{formatCurrency(selectedReservations[activeReservationIndex].totalAmount)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Estado</p>
-                                        <p className={`font-medium ${
-                                            selectedReservations[activeReservationIndex].status === 'CONFIRMED' ? 'text-green-600' :
-                                                selectedReservations[activeReservationIndex].status === 'PENDING' ? 'text-yellow-600' : 'text-red-600'
-                                        }`}>
-                                            {selectedReservations[activeReservationIndex].status === 'CONFIRMED' ? 'Confirmada' :
-                                                selectedReservations[activeReservationIndex].status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="pt-2">
-                                    <h4 className="text-sm font-medium mb-2">Karts asignados</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedReservations[activeReservationIndex].kartIds.map((kartId, idx) => (
-                                            <span key={idx} className="bg-muted py-1 px-2 text-xs rounded">
-                                                {kartId}
+                        {/* Cabecera fija con navegación */}
+                        <div className="sticky top-0 bg-background z-10">
+                            <DialogHeader className="mb-4">
+                                <div className="flex justify-between items-center">
+                                    <DialogTitle>Detalles de la Reserva</DialogTitle>
+                                    {selectedReservations.length > 1 && (
+                                        <div className="flex items-center space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={prevReservation}
+                                                disabled={activeReservationIndex === 0}
+                                                className="h-8 w-8"
+                                            >
+                                                <ChevronLeft className="h-4 w-4" />
+                                            </Button>
+                                            <span className="text-sm font-medium">
+                                                {activeReservationIndex + 1} de {selectedReservations.length}
                                             </span>
-                                        ))}
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={nextReservation}
+                                                disabled={activeReservationIndex === selectedReservations.length - 1}
+                                                className="h-8 w-8"
+                                            >
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            </DialogHeader>
+                        </div>
+
+                        {/* Contenido con altura fija para que no se mueva la UI */}
+                        <div className="flex flex-col" style={{ minHeight: "400px" }}>
+                            {selectedReservations.length > 0 && (
+                                <div className="space-y-4">
+                                    {/* Información básica - altura fija */}
+                                    <div className="grid grid-cols-2 gap-4 h-40">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Responsable</p>
+                                            <p className="font-medium">{selectedReservations[activeReservationIndex].responsibleName}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Email</p>
+                                            <p className="font-medium">{selectedReservations[activeReservationIndex].responsibleEmail}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Horario</p>
+                                            <p className="font-medium">
+                                                {format(parseISO(selectedReservations[activeReservationIndex].startTime), 'HH:mm')} -
+                                                {format(parseISO(selectedReservations[activeReservationIndex].endTime), 'HH:mm')}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Karts</p>
+                                            <p className="font-medium">{selectedReservations[activeReservationIndex].numPeople}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Monto</p>
+                                            <p className="font-medium">{formatCurrency(selectedReservations[activeReservationIndex].totalAmount)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Estado</p>
+                                            <p className={`font-medium ${
+                                                selectedReservations[activeReservationIndex].status === 'CONFIRMED' ? 'text-green-600' :
+                                                    selectedReservations[activeReservationIndex].status === 'PENDING' ? 'text-yellow-600' : 'text-red-600'
+                                            }`}>
+                                                {selectedReservations[activeReservationIndex].status === 'CONFIRMED' ? 'Confirmada' :
+                                                    selectedReservations[activeReservationIndex].status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Karts asignados - altura fija */}
+                                    <div className="h-24">
+                                        <h4 className="text-sm font-medium mb-2">Karts asignados</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedReservations[activeReservationIndex].kartIds.map((kartId, idx) => (
+                                                <span key={idx} className="bg-muted py-1 px-2 text-xs rounded">
+                                                    {kartId}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Invitados con scroll interno - Mantiene scroll propio */}
+                                    <div>
+                                        <h4 className="text-sm font-medium mb-2">Invitados</h4>
+                                        <div className="max-h-32 overflow-y-auto border rounded p-2">
+                                            {selectedReservations[activeReservationIndex].guests.map((guest, idx) => (
+                                                <div key={idx} className="py-1 border-b last:border-0 text-sm">
+                                                    <div>{guest.name}</div>
+                                                    <div className="text-xs text-muted-foreground">{guest.email}</div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
+                            )}
+                        </div>
 
-                                <div className="pt-2">
-                                    <h4 className="text-sm font-medium mb-2">Invitados</h4>
-                                    <div className="max-h-32 overflow-y-auto border rounded p-2">
-                                        {selectedReservations[activeReservationIndex].guests.map((guest, idx) => (
-                                            <div key={idx} className="py-1 border-b last:border-0 text-sm">
-                                                <div>{guest.name}</div>
-                                                <div className="text-xs text-muted-foreground">{guest.email}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <DialogFooter className="flex justify-between">
+                        {/* Footer fijo en la parte inferior */}
+                        <DialogFooter className="flex justify-between mt-4 pt-4 border-t">
                             <Button
                                 variant="outline"
                                 onClick={() => setShowDetails(false)}
