@@ -119,8 +119,6 @@ public class ComprobanteService {
         html.append("<th>Total</th>");
         html.append("</tr>");
 
-        // Calcular valores por persona correctamente
-        // Primero calculamos el precio base por persona (antes de descuentos)
         BigDecimal precioBaseTotal = reserva.getTotalPrice();
         BigDecimal totalDescuentos = BigDecimal.ZERO;
 
@@ -134,16 +132,13 @@ public class ComprobanteService {
             totalDescuentos = totalDescuentos.add(reserva.getDiscountBirthday());
         }
 
-        // Precio sin IVA (para calcular el IVA correctamente)
         BigDecimal precioSinIva = precioBaseTotal.divide(new BigDecimal("1.19"), 2, RoundingMode.HALF_UP);
         BigDecimal totalIva = precioBaseTotal.subtract(precioSinIva);
 
-        // Precio base individual (antes de descuentos)
         BigDecimal precioBaseTotalSinDescuentos = precioSinIva.add(totalDescuentos);
         BigDecimal tarifaBaseIndividual = precioBaseTotalSinDescuentos.divide(
             BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
 
-        // Descuentos individuales
         BigDecimal descuentoGrupoIndividual = BigDecimal.ZERO;
         BigDecimal descuentoFreqIndividual = BigDecimal.ZERO;
         BigDecimal descuentoBirthdayIndividual = BigDecimal.ZERO;
@@ -163,7 +158,6 @@ public class ComprobanteService {
                 BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
         }
 
-        // IVA y total individual
         BigDecimal ivaIndividual = totalIva.divide(
             BigDecimal.valueOf(reserva.getNumPeople()), 2, RoundingMode.HALF_UP);
         BigDecimal totalIndividual = precioBaseTotal.divide(

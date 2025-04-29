@@ -27,12 +27,10 @@ export default function ReservationCalendar() {
 
                 const data = await getReservations(firstDayOfMonth, lastDayOfMonth);
                 setReservations(data);
-                console.log('All reservations:', data);
                 setReservations(data);
                 // Filtrar reservas del día seleccionado
                 const dayReservations = filterDayReservations(date, data);
                 setSelectedDayReservations(dayReservations);
-                console.log('Day reservations:', dayReservations);
                 setSelectedDayReservations(dayReservations);
                 // Obtener la disponibilidad para cada reserva
                 if (dayReservations.length > 0) {
@@ -54,10 +52,6 @@ export default function ReservationCalendar() {
         // Obtener disponibilidad para cada reserva
         for (const reservation of dayReservations) {
             try {
-                console.log('Checking availability for reservation:', reservation.id);
-                console.log('Start time:', reservation.startTime);
-                console.log('End time:', reservation.endTime);
-
                 const availability = await checkKartAvailability(
                     reservation.startTime,
                     reservation.endTime
@@ -70,7 +64,6 @@ export default function ReservationCalendar() {
             }
         }
 
-        console.log('Final availability map:', newAvailabilityMap);
         setAvailabilityMap(newAvailabilityMap);
     };
 
