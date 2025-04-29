@@ -11,6 +11,18 @@ pipeline {
         TARGET_HOST = '10.194.0.4'
     }
     stages {
+        stage('Run Backend Tests') {
+            steps {
+                dir('backend') {
+                    sh 'mvn clean test'
+                }
+            }
+            post {
+                always {
+                    junit "**/target/surefire-reports/TEST-*.xml"
+                }
+            }
+        }
         stage('Build & Pushh Backend Image') {
             steps {
                script{
