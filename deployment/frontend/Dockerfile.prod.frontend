@@ -5,7 +5,6 @@ RUN bun install
 COPY frontend/. .
 ENV NODE_ENV=production
 RUN bun run build
-ENV TZ="America/Santiago"
 FROM nginx:stable-alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY deployment/frontend/nginx/conf.d/nginx.conf /etc/nginx/conf.d/default.conf
