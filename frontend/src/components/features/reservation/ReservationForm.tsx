@@ -118,8 +118,8 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
         startDateTime.setHours(hours, minutes, 0, 0);
         const endDateTime = addMinutes(startDateTime, duration);
 
-        setValue('startTime', startDateTime.toISOString());
-        setValue('endTime', endDateTime.toISOString());
+        setValue('startTime', formatLocalDateWithOffset(startDateTime));
+        setValue('endTime', formatLocalDateWithOffset(endDateTime));
 
         const checkCurrentPricing = async () => {
             if (!watchedValues.numPeople) return;
