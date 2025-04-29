@@ -67,8 +67,6 @@ export default function WeeklyScheduleRack() {
 
         return slots;
     };
-
-    // Modificada para devolver un array de reservas en lugar de una sola
     const findReservations = (day: Date, timeSlot: Date) => {
         return reservations.filter(res => {
             const startTime = parseISO(res.startTime);
@@ -318,8 +316,6 @@ export default function WeeklyScheduleRack() {
                                 </div>
                             )}
                         </div>
-
-                        {/* Footer fijo en la parte inferior */}
                         <DialogFooter className="flex justify-between mt-4 pt-4 border-t">
                             <Button
                                 variant="outline"
