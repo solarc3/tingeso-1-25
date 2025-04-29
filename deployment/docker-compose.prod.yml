@@ -25,6 +25,8 @@ services:
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      JPA_DDL_CONFIG: none
+      JPA_INIT_MODE: never
     depends_on:
       - postgres
     restart: unless-stopped
@@ -45,6 +47,8 @@ services:
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      JPA_DDL_CONFIG: none
+      JPA_INIT_MODE: never
     depends_on:
       - postgres
     restart: unless-stopped
@@ -65,6 +69,8 @@ services:
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      JPA_DDL_CONFIG: create-drop
+      JPA_INIT_MODE: always
     depends_on:
       - postgres
     restart: unless-stopped
