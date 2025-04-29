@@ -45,14 +45,12 @@ public class ReservaService {
 
     // Nuevo método que devuelve un solo objeto en lugar de una lista
     public ReservaResponseDto createReservation(ReservaRequestDto req) {
-        // chequeo de invitado/karts
         if (req.getGuests() == null || req.getGuests().size() != req.getNumPeople()) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "La cantidad de invitados debe ser igual al número de karts");
         }
 
-        // 1) Verificar disponibilidad y precio
         PricingResponseDto pricing = checkAvailability(req);
         List<String> free = availabilityService.getFreeKarts(req.getStartTime(), req.getEndTime());
         if (free.size() < req.getNumPeople()) {

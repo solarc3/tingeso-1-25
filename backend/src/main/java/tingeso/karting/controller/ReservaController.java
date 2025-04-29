@@ -21,12 +21,9 @@ public class ReservaController {
 
     @PostMapping("/check")
     public ResponseEntity<PricingResponseDto> checkAvailability(@RequestBody ReservaRequestDto req) {
-        if (req.getStartTime() != null) {
-            req.setStartTime(req.getStartTime().minusHours(4));
-        }
-        if (req.getEndTime() != null) {
-            req.setEndTime(req.getEndTime().minusHours(4));
-        }
+        System.out.print("tiempo respuesta");
+        System.out.print(req.getStartTime());
+        System.out.print(req.getEndTime());
 
         PricingResponseDto pricing = service.checkAvailability(req);
         return ResponseEntity.ok(pricing);
