@@ -6,8 +6,8 @@ export default function HomePage() {
     return (
         <div className="container mx-auto py-8">
             <section className="relative rounded-xl overflow-hidden mb-16">
-                <div className="bg-red-600 py-16 px-6 text-center">
-                    <h1 className="text-5xl font-bold mb-6 text-white">KartingRM</h1>
+                <div className="bg-primary/10 py-16 px-6 text-center">
+                    <h1 className="text-5xl font-bold mb-6">KartingRM</h1>
                     <p className="text-xl mb-8 max-w-2xl mx-auto">
                         ¡Vive la emoción de la velocidad en nuestro kartódromo profesional!
                         La mejor experiencia de carreras en karts de última generación.
