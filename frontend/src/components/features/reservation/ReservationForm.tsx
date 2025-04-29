@@ -17,9 +17,9 @@ interface ReservationFormProps {
     isSubmitting: boolean;
 }
 function formatLocalDateWithOffset(date: Date): string {
-
-
-    return date.toISOString();
+    return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+        .toISOString()
+        .replace('Z', '-04:00');
 }
 export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmitting }: ReservationFormProps) {
     const [date, setDate] = useState<Date | undefined>(new Date());
