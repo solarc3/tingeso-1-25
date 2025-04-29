@@ -20,19 +20,18 @@ public class ReservaController {
     private final ReservaService service;
 
     @PostMapping("/check")
-    public ResponseEntity<PricingResponseDto> checkAvailability(
-        @RequestBody ReservaRequestDto req
-                                                               ) {
+    public ResponseEntity<PricingResponseDto> checkAvailability(@RequestBody ReservaRequestDto req) {
+        if (req.getStartTime() != null) {
+            req.setStartTime(req.getStartTime().minusHours(4));
+        }
+        if (req.getEndTime() != null) {
+            req.setEndTime(req.getEndTime().minusHours(4));
+        }
+
         PricingResponseDto pricing = service.checkAvailability(req);
         return ResponseEntity.ok(pricing);
     }
 
-    /**
-     * Crea una reserva con:
-     *  – lista de kartIds,
-     *  – responsable (nombre + email),
-     *  – lista de invitados (name+email).
-     */
     @PostMapping
     public ResponseEntity<ReservaResponseDto> createReservation(
         @RequestBody ReservaRequestDto req
