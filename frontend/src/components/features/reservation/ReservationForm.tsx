@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, addMinutes } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { ReservationRequest, PricingResponse, checkPricing } from '@/services/reservationService.ts';
 
 interface ReservationFormProps {
@@ -15,7 +16,18 @@ interface ReservationFormProps {
     onSubmit: (data: ReservationRequest) => void;
     isSubmitting: boolean;
 }
+function formatLocalDateWithOffset(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
 
+    const offset = '-04:00';
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offset}`;
+}
 export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmitting }: ReservationFormProps) {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [time, setTime] = useState<string>("14:00");
@@ -115,8 +127,8 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
             try {
                 const pricing = await checkPricing({
                     ...watchedValues,
-                    startTime: startDateTime.toISOString(),
-                    endTime: endDateTime.toISOString()
+                    startTime: formatLocalDateWithOffset(startDateTime),
+                    endTime: formatLocalDateWithOffset(endDateTime)
                 });
                 onPricingUpdate(pricing);
             } catch (err) {
@@ -140,7 +152,7 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start text-left font-normal mt-1">
-                                {date ? format(date, "d 'de' MMMM, yyyy") : "Selecciona una fecha"}
+                                {date ? format(date, "d 'de' MMMM, yyyy", { locale: es }) : "Selecciona una fecha"}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -150,6 +162,7 @@ export default function ReservationForm({ onPricingUpdate, onSubmit, isSubmittin
                                 onSelect={(newDate) => {
                                     setDate(newDate);
                                 }}
+                                locale={es}
                                 disabled={(date) => {
                                     return date < new Date(new Date().setHours(0, 0, 0, 0));
                                 }}
