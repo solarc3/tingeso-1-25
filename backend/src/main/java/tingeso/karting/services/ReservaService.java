@@ -130,8 +130,6 @@ public class ReservaService {
             .collect(Collectors.toList());
     }
 
-    // Mantén el método antiguo para compatibilidad - opcional
-    // O puedes eliminarlo si estás seguro de que no se usa en ninguna parte
     @Deprecated
     public List<ReservaResponseDto> createReservations(ReservaRequestDto req) {
         return List.of(createReservation(req));

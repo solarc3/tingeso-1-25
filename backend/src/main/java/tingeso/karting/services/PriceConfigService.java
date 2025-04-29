@@ -26,7 +26,7 @@ public class PriceConfigService {
         priceConfig.put("DESCUENTO_FRECUENCIA_ALTA", BigDecimal.valueOf(30.0));
 
         // Descuento por cumpleaños
-        priceConfig.put("DESCUENTO_CUMPLEANOS", BigDecimal.valueOf(50.0)); // Valor base - una persona (50%)
+        priceConfig.put("DESCUENTO_CUMPLEANOS", BigDecimal.valueOf(50.0));
     }
 
     public BigDecimal getPrice(String key) {
