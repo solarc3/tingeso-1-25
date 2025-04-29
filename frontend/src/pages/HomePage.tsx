@@ -15,7 +15,7 @@ export default function HomePage() {
                     </p>
                     <Link
                         to="/booking"
-                        className="inline-block bg-red-600 text-primary-foreground px-8 py-3 rounded-md
+                        className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-md
                         shadow-md hover:bg-primary/90 transition-colors text-lg font-medium"
                     >
                         Reservar Ahora
