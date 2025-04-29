@@ -30,16 +30,12 @@ public class PricingService {
         BigDecimal freqDiscount = baseRate.multiply(
             BigDecimal.valueOf(frequencyDiscountRate(request.getMonthlyVisits())));
 
-        BigDecimal birthdayDiscount = BigDecimal.ZERO;
-        if(request.isBirthday()) {
-            birthdayDiscount = baseRate.multiply(
-                BigDecimal.valueOf(birthdayDiscountRate(request.getNumPeople())));
-        }
+        BigDecimal birthdayDiscount = calculateBirthdayDiscount(request, baseRate);
 
         BigDecimal totalDiscount = groupDiscount.add(freqDiscount).add(birthdayDiscount);
         BigDecimal netPrice = baseRate.subtract(totalDiscount);
 
-        //iva
+        // IVA calculation
         BigDecimal ivaAmount = netPrice.multiply(IVA);
         BigDecimal totalPrice = netPrice.add(ivaAmount);
 
@@ -51,6 +47,30 @@ public class PricingService {
             .tax(ivaAmount)
             .totalAmount(totalPrice)
             .build();
+    }
+
+    private BigDecimal calculateBirthdayDiscount(PricingRequestDto request, BigDecimal baseRate) {
+        int numPeople = request.getNumPeople();
+
+        // No discount for small groups
+        if (numPeople < 3 || !request.isBirthday()) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal pricePerPerson = baseRate.divide(BigDecimal.valueOf(numPeople), 2, RoundingMode.HALF_UP);
+        BigDecimal discountRate = priceConfigService.getPrice("DESCUENTO_CUMPLEANOS")
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+        BigDecimal discountAmount;
+
+        if (numPeople >= 3 && numPeople <= 5) {
+            discountAmount = pricePerPerson.multiply(discountRate);
+        } else if (numPeople >= 6 && numPeople <= 10) {
+            discountAmount = pricePerPerson.multiply(discountRate).multiply(BigDecimal.valueOf(2));
+        } else {
+            discountAmount = pricePerPerson.multiply(discountRate).multiply(BigDecimal.valueOf(2));
+        }
+
+        return discountAmount;
     }
 
     private BigDecimal determineBaseRate(PricingRequestDto request) {
@@ -100,7 +120,6 @@ public class PricingService {
     }
 
     private double birthdayDiscountRate(int numPeople) {
-        // Solo aplicamos descuento si hay al menos 3 personas
         if (numPeople < 3) return 0.0;
 
         BigDecimal descuentoBase = priceConfigService.getPrice("DESCUENTO_CUMPLEANOS")
@@ -111,7 +130,6 @@ public class PricingService {
             descuento = descuento.multiply(BigDecimal.valueOf(2));
         }
 
-        // El descuento se reparte entre todos los asistentes
         return descuento.divide(BigDecimal.valueOf(numPeople), 4, RoundingMode.HALF_UP).doubleValue();
     }
 }
