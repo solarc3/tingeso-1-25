@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { getReservations, ReservationResponse, cancelReservation as cancelReservationApi } from '@/services/reservationService';
 import { addDays, format, startOfWeek, endOfWeek, addMinutes, isSameDay, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { X } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
@@ -12,8 +12,9 @@ export default function WeeklyScheduleRack() {
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [reservations, setReservations] = useState<ReservationResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedReservation, setSelectedReservation] = useState<ReservationResponse | null>(null);
+    const [selectedReservations, setSelectedReservations] = useState<ReservationResponse[]>([]);
     const [showDetails, setShowDetails] = useState(false);
+    const [activeReservationIndex, setActiveReservationIndex] = useState(0);
 
     // Horarios unificados desde 10:00 AM hasta 9:30 PM
     const startHour = 10;   // 10:00 AM para todos los días
@@ -49,9 +50,11 @@ export default function WeeklyScheduleRack() {
             toast.error("Error al cancelar la reserva");
         }
     };
+
     const weekDays = Array.from({ length: 7 }, (_, i) =>
         addDays(currentWeekStart, i)
     );
+
     const getTimeSlots = () => {
         const slots = [];
         let time = new Date();
@@ -64,8 +67,10 @@ export default function WeeklyScheduleRack() {
 
         return slots;
     };
-    const findReservation = (day: Date, timeSlot: Date) => {
-        return reservations.find(res => {
+
+    // Modificada para devolver un array de reservas en lugar de una sola
+    const findReservations = (day: Date, timeSlot: Date) => {
+        return reservations.filter(res => {
             const startTime = parseISO(res.startTime);
             const endTime = parseISO(res.endTime);
             const slotTime = new Date(day);
@@ -85,8 +90,9 @@ export default function WeeklyScheduleRack() {
         setCurrentWeekStart(addDays(currentWeekStart, 7));
     };
 
-    const handleReservationClick = (reservation: ReservationResponse) => {
-        setSelectedReservation(reservation);
+    const handleReservationClick = (blockReservations: ReservationResponse[]) => {
+        setSelectedReservations(blockReservations);
+        setActiveReservationIndex(0);
         setShowDetails(true);
     };
 
@@ -94,6 +100,18 @@ export default function WeeklyScheduleRack() {
         new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
 
     const timeSlots = getTimeSlots();
+
+    const nextReservation = () => {
+        setActiveReservationIndex((prev) =>
+            prev < selectedReservations.length - 1 ? prev + 1 : prev
+        );
+    };
+
+    const prevReservation = () => {
+        setActiveReservationIndex((prev) =>
+            prev > 0 ? prev - 1 : 0
+        );
+    };
 
     return (
         <div className="space-y-4">
@@ -116,7 +134,6 @@ export default function WeeklyScheduleRack() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse table-fixed">
-                                {/* Comentario antes de colgroup: Definición de anchos de columnas */}
                                 <colgroup>
                                     <col style={{ width: '80px' }} />
                                     {weekDays.map((_, idx) => (
@@ -142,8 +159,9 @@ export default function WeeklyScheduleRack() {
                                         </td>
 
                                         {weekDays.map((day, dayIdx) => {
-                                            const reservation = findReservation(day, timeSlot);
-                                            const isAvailable = !reservation;
+                                            const blockReservations = findReservations(day, timeSlot);
+                                            const isAvailable = blockReservations.length === 0;
+                                            const hasMultiple = blockReservations.length > 1;
 
                                             // Resaltar horarios fuera de disponibilidad para días de semana
                                             const isWeekday = ![0, 6].includes(day.getDay());
@@ -158,14 +176,22 @@ export default function WeeklyScheduleRack() {
                                                             relative
                                                         `}
                                                 >
-                                                    {reservation && (
+                                                    {blockReservations.length > 0 && (
                                                         <button
-                                                            onClick={() => handleReservationClick(reservation)}
+                                                            onClick={() => handleReservationClick(blockReservations)}
                                                             className="absolute inset-0 w-full h-full flex items-center justify-center hover:bg-muted/30 p-1"
                                                         >
                                                             <div className="text-xs w-full overflow-hidden">
-                                                                <div className="font-bold truncate">{reservation.numPeople} karts</div>
-                                                                <div className="truncate">{reservation.responsibleName}</div>
+                                                                <div className="font-bold truncate">
+                                                                    {hasMultiple
+                                                                        ? `${blockReservations.length} reservas`
+                                                                        : `${blockReservations[0].numPeople} karts`}
+                                                                </div>
+                                                                <div className="truncate">
+                                                                    {hasMultiple
+                                                                        ? `Múltiples clientes`
+                                                                        : blockReservations[0].responsibleName}
+                                                                </div>
                                                             </div>
                                                         </button>
                                                     )}
@@ -187,61 +213,100 @@ export default function WeeklyScheduleRack() {
                 </CardContent>
             </Card>
 
-            {selectedReservation && (
+            {selectedReservations.length > 0 && (
                 <Dialog open={showDetails} onOpenChange={setShowDetails}>
-                    <DialogContent>
+                    <DialogContent className="max-w-3xl">
                         <DialogHeader>
-                            <DialogTitle>Detalles de la Reserva</DialogTitle>
+                            <DialogTitle className="flex justify-between items-center">
+                                <span>Detalles de la Reserva</span>
+                                {selectedReservations.length > 1 && (
+                                    <div className="text-sm font-normal flex items-center">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={prevReservation}
+                                            disabled={activeReservationIndex === 0}
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </Button>
+                                        <span className="mx-2">
+                                            {activeReservationIndex + 1} de {selectedReservations.length}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={nextReservation}
+                                            disabled={activeReservationIndex === selectedReservations.length - 1}
+                                        >
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </DialogTitle>
                         </DialogHeader>
 
-                        <div className="space-y-4 mt-2">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Responsable</p>
-                                    <p className="font-medium">{selectedReservation.responsibleName}</p>
+                        {selectedReservations.length > 0 && (
+                            <div className="space-y-4 mt-2">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Responsable</p>
+                                        <p className="font-medium">{selectedReservations[activeReservationIndex].responsibleName}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Email</p>
+                                        <p className="font-medium">{selectedReservations[activeReservationIndex].responsibleEmail}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Horario</p>
+                                        <p className="font-medium">
+                                            {format(parseISO(selectedReservations[activeReservationIndex].startTime), 'HH:mm')} -
+                                            {format(parseISO(selectedReservations[activeReservationIndex].endTime), 'HH:mm')}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Karts</p>
+                                        <p className="font-medium">{selectedReservations[activeReservationIndex].numPeople}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Monto</p>
+                                        <p className="font-medium">{formatCurrency(selectedReservations[activeReservationIndex].totalAmount)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Estado</p>
+                                        <p className={`font-medium ${
+                                            selectedReservations[activeReservationIndex].status === 'CONFIRMED' ? 'text-green-600' :
+                                                selectedReservations[activeReservationIndex].status === 'PENDING' ? 'text-yellow-600' : 'text-red-600'
+                                        }`}>
+                                            {selectedReservations[activeReservationIndex].status === 'CONFIRMED' ? 'Confirmada' :
+                                                selectedReservations[activeReservationIndex].status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Email</p>
-                                    <p className="font-medium">{selectedReservation.responsibleEmail}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Horario</p>
-                                    <p className="font-medium">
-                                        {format(parseISO(selectedReservation.startTime), 'HH:mm')} -
-                                        {format(parseISO(selectedReservation.endTime), 'HH:mm')}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Karts</p>
-                                    <p className="font-medium">{selectedReservation.numPeople}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Monto</p>
-                                    <p className="font-medium">{formatCurrency(selectedReservation.totalAmount)}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Estado</p>
-                                    <p className={`font-medium ${
-                                        selectedReservation.status === 'CONFIRMED' ? 'text-green-600' :
-                                            selectedReservation.status === 'PENDING' ? 'text-yellow-600' : 'text-red-600'
-                                    }`}>
-                                        {selectedReservation.status === 'CONFIRMED' ? 'Confirmada' :
-                                            selectedReservation.status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
-                                    </p>
-                                </div>
-                            </div>
 
-                            <div className="pt-2">
-                                <h4 className="text-sm font-medium mb-2">Karts asignados</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {selectedReservation.kartIds.map((kartId, idx) => (
-                                        <span key={idx} className="bg-muted py-1 px-2 text-xs rounded">
-                                            {kartId}
-                                        </span>
-                                    ))}
+                                <div className="pt-2">
+                                    <h4 className="text-sm font-medium mb-2">Karts asignados</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedReservations[activeReservationIndex].kartIds.map((kartId, idx) => (
+                                            <span key={idx} className="bg-muted py-1 px-2 text-xs rounded">
+                                                {kartId}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-2">
+                                    <h4 className="text-sm font-medium mb-2">Invitados</h4>
+                                    <div className="max-h-32 overflow-y-auto border rounded p-2">
+                                        {selectedReservations[activeReservationIndex].guests.map((guest, idx) => (
+                                            <div key={idx} className="py-1 border-b last:border-0 text-sm">
+                                                <div>{guest.name}</div>
+                                                <div className="text-xs text-muted-foreground">{guest.email}</div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         <DialogFooter className="flex justify-between">
                             <Button
@@ -250,10 +315,10 @@ export default function WeeklyScheduleRack() {
                             >
                                 Cerrar
                             </Button>
-                            {selectedReservation.status !== 'CANCELLED' && (
+                            {selectedReservations[activeReservationIndex].status !== 'CANCELLED' && (
                                 <Button
                                     variant="destructive"
-                                    onClick={() => cancelReservation(selectedReservation.id)}
+                                    onClick={() => cancelReservation(selectedReservations[activeReservationIndex].id)}
                                 >
                                     <X className="h-4 w-4 mr-2" /> Cancelar Reserva
                                 </Button>
