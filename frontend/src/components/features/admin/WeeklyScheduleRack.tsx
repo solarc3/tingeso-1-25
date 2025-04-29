@@ -43,21 +43,15 @@ export default function WeeklyScheduleRack() {
             await cancelReservationApi(id);
             toast.success("Reserva cancelada correctamente");
             setShowDetails(false);
-
-            // Actualizar la lista de reservas
             loadWeekReservations();
         } catch (error) {
             console.error('Error al cancelar la reserva:', error);
             toast.error("Error al cancelar la reserva");
         }
     };
-
-    // Genera los días de la semana actual
     const weekDays = Array.from({ length: 7 }, (_, i) =>
         addDays(currentWeekStart, i)
     );
-
-    // Genera los intervalos de tiempo (simplificado)
     const getTimeSlots = () => {
         const slots = [];
         let time = new Date();
@@ -70,14 +64,10 @@ export default function WeeklyScheduleRack() {
 
         return slots;
     };
-
-    // Encuentra reservas para un día y hora específicos
     const findReservation = (day: Date, timeSlot: Date) => {
         return reservations.find(res => {
             const startTime = parseISO(res.startTime);
             const endTime = parseISO(res.endTime);
-
-            // Crear un datetime con el día actual y la hora del slot
             const slotTime = new Date(day);
             slotTime.setHours(timeSlot.getHours(), timeSlot.getMinutes(), 0, 0);
 
@@ -182,7 +172,7 @@ export default function WeeklyScheduleRack() {
 
                                                     {isBeforeWeekdayOpen && (
                                                         <div className="absolute inset-0 flex items-center justify-center opacity-50">
-                                                            <span className="text-xs text-gray-400">No disponible</span>
+                                                            <span className="text-xs text-gray-400"></span>
                                                         </div>
                                                     )}
                                                 </td>
