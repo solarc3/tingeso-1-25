@@ -20,7 +20,6 @@ public class PriceConfigService {
         priceConfig.put("DESCUENTO_GRUPO_MEDIANO", BigDecimal.valueOf(20.0));
         priceConfig.put("DESCUENTO_GRUPO_GRANDE", BigDecimal.valueOf(30.0));
 
-        // Descuentos por frecuencia (valores en porcentaje)
         priceConfig.put("DESCUENTO_FRECUENCIA_BAJA", BigDecimal.valueOf(10.0));
         priceConfig.put("DESCUENTO_FRECUENCIA_MEDIA", BigDecimal.valueOf(20.0));
         priceConfig.put("DESCUENTO_FRECUENCIA_ALTA", BigDecimal.valueOf(30.0));
