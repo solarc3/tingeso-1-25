@@ -179,7 +179,6 @@ public class ComprobanteService {
 
         html.append("</table>");
 
-        // Total general (sin cambios)
         html.append("<h2>Total a Pagar</h2>");
         html.append("<p>Subtotal: ")
             .append(formatCurrency(precioSinIva))

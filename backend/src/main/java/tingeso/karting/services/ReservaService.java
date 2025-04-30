@@ -43,7 +43,6 @@ public class ReservaService {
         return pricingService.calculatePrice(pReq);
     }
 
-    // Nuevo método que devuelve un solo objeto en lugar de una lista
     public ReservaResponseDto createReservation(ReservaRequestDto req) {
         if (req.getGuests() == null || req.getGuests().size() != req.getNumPeople()) {
             throw new ResponseStatusException(
@@ -58,8 +57,6 @@ public class ReservaService {
         }
 
         List<String> assigned = free.subList(0, req.getNumPeople());
-
-        // 2) Crear la reserva con todos los karts en una sola entidad
         ReservaEntity entity = ReservaEntity.builder()
             .startTime(req.getStartTime())
             .endTime(req.getEndTime())
@@ -81,11 +78,8 @@ public class ReservaService {
             .build();
 
         ReservaEntity saved = reservaRepository.save(entity);
-// Registramos la reserva completa en el servicio de disponibilidad de una sola vez
         System.out.println("Registrando nueva reserva ID " + saved.getId() + " en el servicio de disponibilidad");
         availabilityService.registerReservation(saved);
-        // 4) Mapear a DTO de respuesta
-        // Generar y enviar comprobante automaticamente
         ComprobanteEntity comprobante = comprobanteService.generarComprobante(saved);
         comprobanteService.enviarComprobantePorEmail(comprobante.getId());
 
@@ -110,19 +104,16 @@ public class ReservaService {
         return resp;
     }
 
-    // Método existente para reservas entre fechas
     public List<ReservaResponseDto> getReservationsBetweenDates(OffsetDateTime startDate, OffsetDateTime endDate) {
         List<ReservaEntity> entities = reservaRepository.findByStartTimeBetween(startDate, endDate);
         return entities.stream()
             .map(entity -> {
                 ReservaResponseDto dto = modelMapper.map(entity, ReservaResponseDto.class);
-                // Asegúrate de que todos los campos necesarios estén mapeados
                 dto.setStatus(entity.getStatus().toString());
                 dto.setTotalAmount(entity.getTotalPrice());
                 dto.setBirthdayDiscount(entity.getDiscountBirthday());
                 dto.setFrequencyDiscount(entity.getDiscountFreq());
                 dto.setGroupDiscount(entity.getDiscountGroup());
-                // También deberíamos mapear los guests si hacemos findById
                 return dto;
             })
             .collect(Collectors.toList());
@@ -138,13 +129,11 @@ public class ReservaService {
         System.out.println("Start: " + startTime);
         System.out.println("End: " + endTime);
 
-        // Obtenemos todos los karts del servicio KartService
         List<String> allKarts = kartService.getAllKartIds();
         int totalKarts = allKarts.size();
 
         System.out.println("Total karts: " + totalKarts);
 
-        // Obtenemos los karts libres para ese horario
         List<String> freeKarts = availabilityService.getFreeKarts(startTime, endTime);
 
         System.out.println("Free karts: " + freeKarts.size());
@@ -170,7 +159,6 @@ public class ReservaService {
 
         ReservaEntity updated = reservaRepository.save(reservation);
 
-        // Convertir y devolver DTO
         ReservaResponseDto dto = modelMapper.map(updated, ReservaResponseDto.class);
         dto.setStatus(updated.getStatus().toString());
         dto.setTotalAmount(updated.getTotalPrice());
@@ -178,7 +166,6 @@ public class ReservaService {
         dto.setFrequencyDiscount(updated.getDiscountFreq());
         dto.setGroupDiscount(updated.getDiscountGroup());
 
-        // Mapear los invitados, ya que ModelMapper no los incluye automáticamente
         dto.setGuests(updated.getGuests().stream()
                           .map(g -> new GuestDto(g.getName(), g.getEmail()))
                           .collect(Collectors.toList()));

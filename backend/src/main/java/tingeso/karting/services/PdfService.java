@@ -12,7 +12,6 @@ public class PdfService {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-            // Usando Flying Saucer con OpenHTMLtoPDF
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.withHtmlContent(contenidoHtml, null);
             builder.toStream(outputStream);

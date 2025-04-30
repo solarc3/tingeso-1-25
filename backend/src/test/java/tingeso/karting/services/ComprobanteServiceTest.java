@@ -51,12 +51,10 @@ public class ComprobanteServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Crear lista de invitados
         guests = new ArrayList<>();
         guests.add(new GuestEmbeddable("Juan Pérez", "juan@example.com"));
         guests.add(new GuestEmbeddable("Ana López", "ana@example.com"));
 
-        // Crear reserva de prueba
         reserva = ReservaEntity.builder()
             .id(1L)
             .responsibleName("Juan Pérez")
@@ -73,7 +71,6 @@ public class ComprobanteServiceTest {
             .discountBirthday(BigDecimal.ZERO)
             .build();
 
-        // Crear comprobante de prueba
         comprobante = ComprobanteEntity.builder()
             .id(1L)
             .codigoReserva("RES-1-123456789")
@@ -108,7 +105,6 @@ public class ComprobanteServiceTest {
 
         comprobanteService.enviarComprobantePorEmail(1L);
 
-        // Verificar que se envió el email al responsable
         verify(emailService).enviarEmailConAdjunto(
             eq("juan@example.com"),
             anyString(),
@@ -117,7 +113,6 @@ public class ComprobanteServiceTest {
             any(byte[].class)
                                                   );
 
-        // Verificar que se envió el email a cada invitado (excepto al responsable)
         verify(emailService).enviarEmailConAdjunto(
             eq("ana@example.com"),
             anyString(),
@@ -126,7 +121,6 @@ public class ComprobanteServiceTest {
             any(byte[].class)
                                                   );
 
-        // Verificar que se actualizó el comprobante
         verify(comprobanteRepository).save(argThat(comp ->
                                                        comp.getEnviado() && comp.getFechaEnvio() != null
                                                   ));

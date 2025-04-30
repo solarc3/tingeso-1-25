@@ -35,7 +35,6 @@ public class PricingService {
         BigDecimal totalDiscount = groupDiscount.add(freqDiscount).add(birthdayDiscount);
         BigDecimal netPrice = baseRate.subtract(totalDiscount);
 
-        // IVA calculation
         BigDecimal ivaAmount = netPrice.multiply(IVA);
         BigDecimal totalPrice = netPrice.add(ivaAmount);
 
@@ -52,7 +51,6 @@ public class PricingService {
     private BigDecimal calculateBirthdayDiscount(PricingRequestDto request, BigDecimal baseRate) {
         int numPeople = request.getNumPeople();
 
-        // No discount for small groups
         if (numPeople < 3 || !request.isBirthday()) {
             return BigDecimal.ZERO;
         }

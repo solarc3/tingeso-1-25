@@ -44,7 +44,6 @@ class AvailabilityServiceTest {
         when(kartService.getAllKartIds()).thenReturn(kartIds);
         when(reservaRepository.count()).thenReturn(0L);
         when(reservaRepository.findByStatus(any(ReservaStatus.class))).thenReturn(Collections.emptyList());
-        // Inicializamos calendario
         availabilityService.initAfterStartup();
     }
 
@@ -63,16 +62,13 @@ class AvailabilityServiceTest {
     @Test
     @DisplayName("registerKartReservation + getFreeKarts detecta ocupación y liberación")
     void testRegisterKartReservationAndGetFreeKarts() {
-        // Reservo K001 de ahora+1h a ahora+2h
         availabilityService.registerKartReservation("K001", now.plusHours(1), now.plusHours(2));
 
-        // Durante la reserva, K001 NO debe estar libre
         List<String> ocupada = availabilityService.getFreeKarts(
             now.plusHours(1).plusMinutes(30),
             now.plusHours(1).plusMinutes(45));
         assertThat(ocupada).doesNotContain("K001");
 
-        // Fuera de la reserva, K001 sí debe estar libre
         List<String> libre = availabilityService.getFreeKarts(
             now.plusHours(2).plusMinutes(1),
             now.plusHours(3));
@@ -89,11 +85,8 @@ class AvailabilityServiceTest {
             .endTime(now.plusHours(1))
             .status(ReservaStatus.CONFIRMED)
             .build();
-
-        // No debe lanzar excepción
         availabilityService.registerReservation(resEmpty);
 
-        // El calendario sigue libre
         List<String> libres = availabilityService.getFreeKarts(now, now.plusHours(1));
         assertThat(libres).containsAll(kartIds);
     }
@@ -110,13 +103,10 @@ class AvailabilityServiceTest {
             .build();
 
         availabilityService.registerReservation(res);
-        // Confirma que K002 quedó ocupado
         assertThat(availabilityService.getFreeKarts(
             now.plusHours(3).plusMinutes(10),
             now.plusHours(3).plusMinutes(15)))
             .doesNotContain("K002");
-
-        // Lo elimino
         availabilityService.removeReservation(res);
         assertThat(availabilityService.getFreeKarts(
             now.plusHours(3).plusMinutes(10),
@@ -195,7 +185,6 @@ class AvailabilityServiceTest {
 
         availabilityService.initAfterStartup();
 
-        // Verifico que cada kart quedó ocupado en su franja
         assertThat(availabilityService.getFreeKarts(
             now.plusDays(1).plusMinutes(10),
             now.plusDays(1).plusMinutes(20)))
@@ -209,7 +198,6 @@ class AvailabilityServiceTest {
     @Test
     @DisplayName("initAfterStartup maneja kartId no existente y cae en branch de ERROR")
     void testInitAfterStartupWithInvalidKartId() {
-        // Preparo una reserva con un kartId que no existe en el calendario
         ReservaEntity bad = ReservaEntity.builder()
             .id(99L)
             .kartIds(Collections.singletonList("BAD"))
@@ -218,7 +206,6 @@ class AvailabilityServiceTest {
             .status(ReservaStatus.CONFIRMED)
             .build();
 
-        // Simulo que sólo viene esa reserva
         reset(reservaRepository);
         when(kartService.getAllKartIds()).thenReturn(kartIds);
         when(reservaRepository.count()).thenReturn(1L);
@@ -227,13 +214,11 @@ class AvailabilityServiceTest {
         when(reservaRepository.findByStatus(ReservaStatus.PENDING))
             .thenReturn(Collections.emptyList());
 
-        // Vuelvo a inicializar
         availabilityService.initAfterStartup();
 
         @SuppressWarnings("unchecked")
         Map<String, NavigableSet<?>> calendar =
             (Map<String, NavigableSet<?>>) ReflectionTestUtils.getField(availabilityService, "calendar");
-        // Verifico que la clave "BAD" no se añadió
         assertThat(calendar.keySet()).doesNotContain("BAD");
     }
 
@@ -247,7 +232,6 @@ class AvailabilityServiceTest {
             .endTime(now.plusHours(1))
             .status(ReservaStatus.PENDING)
             .build();
-        // Debe entrar en el else y no petar
         availabilityService.registerReservation(resNull);
     }
 
@@ -263,20 +247,16 @@ class AvailabilityServiceTest {
         Object i1 = ctor.newInstance(s1, e1);
         Object i2 = ctor.newInstance(s1, e1);
 
-        // equals & hashCode
         assertThat(i1).isEqualTo(i2);
         assertThat(i1.hashCode()).isEqualTo(i2.hashCode());
 
-        // compareTo == 0
         Method compareTo = cls.getMethod("compareTo", cls);
         assertThat((int)compareTo.invoke(i1, i2)).isZero();
 
-        // overlaps true/false
         Method overlaps = cls.getMethod("overlaps", OffsetDateTime.class, OffsetDateTime.class);
         assertThat((boolean)overlaps.invoke(i1, now.plusMinutes(30), now.plusMinutes(30))).isTrue();
         assertThat((boolean)overlaps.invoke(i1, now.plusHours(2), now.plusHours(3))).isFalse();
 
-        // compareTo distintos
         Object i3 = ctor.newInstance(now.plusHours(2), now.plusHours(3));
         assertThat((int)compareTo.invoke(i1, i3)).isLessThan(0);
         assertThat((int)compareTo.invoke(i3, i1)).isGreaterThan(0);

@@ -156,7 +156,6 @@ public class AvailabilityService {
             }
         }
 
-        // El método original optimizado con floor/ceiling puede mantenerlo después
         Interval query = new Interval(start, end);
 
         Interval floor = intervals.floor(query);
