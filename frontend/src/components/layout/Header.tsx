@@ -40,10 +40,7 @@ export default function Header() {
                     <Button asChild>
                         <Link to="/booking">Reservar Ahora</Link>
                     </Button>
-                    <Button onClick={ModeToggle} className="flex items-center gap-2"                         variant="outline"
-                            size="sm">
-
-                    </Button>
+                    <ModeToggle>gurt</ModeToggle>
                 </div>
             </div>
         </header>
