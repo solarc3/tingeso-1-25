@@ -40,7 +40,7 @@ export default function Header() {
                     <Button asChild>
                         <Link to="/booking">Reservar Ahora</Link>
                     </Button>
-                    <ModeToggle>gurt</ModeToggle>
+                    <ModeToggle></ModeToggle>
                 </div>
             </div>
         </header>
