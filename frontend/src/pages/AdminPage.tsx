@@ -139,7 +139,7 @@ export default function AdminPage() {
                 <TabsContent value="reports">
                     <Card className="mb-8">
                         <CardHeader>
-                            <CardTitle>Generar Reportes</CardTitle>
+                            <CardTitle>Mostrar Reportes</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

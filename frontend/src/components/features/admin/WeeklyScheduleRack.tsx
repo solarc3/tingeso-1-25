@@ -15,11 +15,9 @@ export default function WeeklyScheduleRack() {
     const [selectedReservations, setSelectedReservations] = useState<ReservationResponse[]>([]);
     const [showDetails, setShowDetails] = useState(false);
     const [activeReservationIndex, setActiveReservationIndex] = useState(0);
-
-    // Horarios unificados desde 10:00 AM hasta 9:30 PM
-    const startHour = 10;   // 10:00 AM para todos los días
-    const endHour = 21.5;   // 9:30 PM para todos los días
-    const interval = 30;    // Intervalos de 30 minutos
+    const startHour = 10;
+    const endHour = 21.5;
+    const interval = 30;
 
     useEffect(() => {
         loadWeekReservations();
