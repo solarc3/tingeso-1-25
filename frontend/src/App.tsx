@@ -2,10 +2,12 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import { ThemeProvider } from 'next-themes'
 function App() {
     const [count, setCount] = useState(0)
 
     return (
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <>
             <div>
                 <a href="https://vite.dev" target="_blank">
@@ -31,7 +33,7 @@ function App() {
             {/* Agrega el componente de prueba de conexión */}
 
         </>
-    )
+    </ThemeProvider>)
 }
 
 export default App

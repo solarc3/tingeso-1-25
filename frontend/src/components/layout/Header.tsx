@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Server } from 'lucide-react';
+import {ModeToggle} from "@/components/mode-toggle.tsx";
 export default function Header() {
     const checkLoadBalancer = async () => {
         try {
@@ -38,6 +39,10 @@ export default function Header() {
                     </Link>
                     <Button asChild>
                         <Link to="/booking">Reservar Ahora</Link>
+                    </Button>
+                    <Button onClick={ModeToggle} className="flex items-center gap-2"                         variant="outline"
+                            size="sm">
+
                     </Button>
                 </div>
             </div>
