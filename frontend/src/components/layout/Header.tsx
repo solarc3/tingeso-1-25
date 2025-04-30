@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Server } from 'lucide-react';
-import {ModeToggle} from "@/components/mode-toggle.tsx";
 export default function Header() {
     const checkLoadBalancer = async () => {
         try {
@@ -40,7 +39,6 @@ export default function Header() {
                     <Button asChild>
                         <Link to="/booking">Reservar Ahora</Link>
                     </Button>
-                    <ModeToggle></ModeToggle>
                 </div>
             </div>
         </header>
