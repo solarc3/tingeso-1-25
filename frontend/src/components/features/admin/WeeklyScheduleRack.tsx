@@ -214,7 +214,6 @@ export default function WeeklyScheduleRack() {
             {selectedReservations.length > 0 && (
                 <Dialog open={showDetails} onOpenChange={setShowDetails}>
                     <DialogContent className="max-w-3xl">
-                        {/* Cabecera fija con navegación */}
                         <div className="sticky top-0 bg-background z-10">
                             <DialogHeader className="mb-4">
                                 <div className="flex justify-between items-center">
@@ -247,12 +246,9 @@ export default function WeeklyScheduleRack() {
                                 </div>
                             </DialogHeader>
                         </div>
-
-                        {/* Contenido con altura fija para que no se mueva la UI */}
                         <div className="flex flex-col" style={{ minHeight: "400px" }}>
                             {selectedReservations.length > 0 && (
                                 <div className="space-y-4">
-                                    {/* Información básica - altura fija */}
                                     <div className="grid grid-cols-2 gap-4 h-40">
                                         <div>
                                             <p className="text-sm text-muted-foreground">Responsable</p>
@@ -289,7 +285,6 @@ export default function WeeklyScheduleRack() {
                                         </div>
                                     </div>
 
-                                    {/* Karts asignados - altura fija */}
                                     <div className="h-24">
                                         <h4 className="text-sm font-medium mb-2">Karts asignados</h4>
                                         <div className="flex flex-wrap gap-2">
@@ -301,7 +296,6 @@ export default function WeeklyScheduleRack() {
                                         </div>
                                     </div>
 
-                                    {/* Invitados con scroll interno - Mantiene scroll propio */}
                                     <div>
                                         <h4 className="text-sm font-medium mb-2">Invitados</h4>
                                         <div className="max-h-32 overflow-y-auto border rounded p-2">
