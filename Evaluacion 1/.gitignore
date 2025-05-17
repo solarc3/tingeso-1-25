@@ -1,0 +1,42 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Archivos de variables de entorno
+.env*
+.env.dev
+.env.prod
+.env.local
+
+# Directorios específicos de IDE
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+.classpath
+.project
+.settings/
+
+# Logs
+logs/
+*.log
+
+# Directorios de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Dependencias de Node (para frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Archivos generados por la compilación
+dist/
+build/
+
+
+# Datos persistentes
+deployment/backend/data/
