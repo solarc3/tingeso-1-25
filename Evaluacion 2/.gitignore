@@ -15,10 +15,7 @@
 nbproject/
 eclipse/
 com.springsource.sts.config.core.prefs # STS
-apuntes.md
-start-cluster.sh
-stop-cluster.sh
-deploy-microservice.sh
+
 # Build artifacts & Dependencies
 target/
 build/
@@ -32,7 +29,7 @@ lib/
 *.ear
 *.class
 bin/
-**/.terraform/
+
 # Maven
 pom.xml.tag
 pom.xml.releaseBackup
@@ -64,7 +61,7 @@ yarn-error.log*
 # docker-compose.override.yml # Si usas overrides locales
 
 # Terraform
-**/.terraform/             # Módulos descargados, plugins, etc.
+.terraform/             # Módulos descargados, plugins, etc.
 *.tfstate               # ¡CRÍTICO! Archivos de estado LOCALES. Ya estás usando GCS, así que esto es una doble seguridad.
 *.tfstate.*.backup      # Backups de estado LOCALES.
 # .terraform.lock.hcl   # El lock file de providers. Es recomendable commitearlo para builds consistentes.
@@ -76,7 +73,7 @@ override.tf.json
 terraform.tfvars        # ¡CRÍTICO! Si contiene secretos. Usa variables de entorno o un sistema de secrets.
 *.tfvars.example        # Puedes commitear ejemplos, pero no los archivos con valores reales.
 *.auto.tfvars           # Para overrides locales, no para el repo.
-values.yaml
+
 # Kubernetes / Helm
 # kubeconfig # Archivos de configuración de kubectl locales
 # helmfile.lock # Si usaras Helmfile

@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka-server
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka-server
+  template:
+    metadata:
+      labels:
+        app: eureka-server
+    spec:
+      containers:
+      - name: eureka-server
+        image: {{ .Values.dockerhubUser }}/{{ .Values.eurekaServer.image }}:{{ .Values.imageTag }}
+        ports:
+        - containerPort: {{ .Values.eurekaServer.port }}
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.springProfiles }}
+        - name: EUREKA_INSTANCE_HOSTNAME
+          value: eureka-server
+        - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+          value: "false"
+        - name: EUREKA_CLIENT_FETCH_REGISTRY
+          value: "false"
+        - name: SPRING_CLOUD_CONFIG_URI
+          value: {{ .Values.configServerUrl }}
+        - name: SPRING_CONFIG_IMPORT
+          value: "optional:configserver:{{ .Values.configServerUrl }}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-server
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.eurekaServer.port }}
+    targetPort: {{ .Values.eurekaServer.port }}
+  selector:
+    app: eureka-server
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+    spec:
+      containers:
+      - name: config-server
+        image: {{ .Values.dockerhubUser }}/{{ .Values.configServer.image }}:{{ .Values.imageTag }}
+        ports:
+        - containerPort: {{ .Values.configServer.port }}
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.springProfiles }}
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          value: {{ .Values.eurekaUrl }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.configServer.port }}
+    targetPort: {{ .Values.configServer.port }}
+  selector:
+    app: config-server
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: {{ .Values.dockerhubUser }}/{{ .Values.apiGateway.image }}:{{ .Values.imageTag }}
+        ports:
+        - containerPort: {{ .Values.apiGateway.port }}
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.springProfiles }}
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          value: {{ .Values.eurekaUrl }}
+        - name: SPRING_CLOUD_CONFIG_URI
+          value: {{ .Values.configServerUrl }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: {{ .Values.namespace }}
+spec:
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.apiGateway.loadBalancerIP }}
+  ports:
+  - port: 80
+    targetPort: {{ .Values.apiGateway.port }}
+  selector:
+    app: api-gateway

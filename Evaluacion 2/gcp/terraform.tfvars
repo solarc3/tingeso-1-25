@@ -1,0 +1,10 @@
+project_id = "poetic-axle-454506-f8"
+region     = "southamerica-west1"
+zone       = "southamerica-west1-b"
+dockerhub_username = "tu-usuario-dockerhub"  # CAMBIAR por tu usuario real
+spring_mail_host     = "smtp.gmail.com"
+spring_mail_username = "tu-email@gmail.com"
+spring_mail_password = "tu-app-password-de-gmail"
+karting_package_name = "tingeso.karting"  # O cambiar por tu package actual
+jpa_ddl_auto        = "update"            # "create-drop" para desarrollo
+jpa_init_mode       = "never"             # "always" si tienes data.sql
