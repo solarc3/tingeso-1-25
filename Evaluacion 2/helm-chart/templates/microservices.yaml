@@ -1,0 +1,117 @@
+{{- $root := . -}}
+{{- range $key, $service := .Values.microservices }}
+{{- if $service.enabled }}
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $service.name }}
+  namespace: {{ $root.Values.global.namespace }}
+  labels:
+    app: {{ $service.name }}
+spec:
+  replicas: {{ $service.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $service.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $service.name }}
+    spec:
+      containers:
+      - name: {{ $service.name }}
+        image: {{ $root.Values.global.dockerhubUser }}/{{ $service.name }}:{{ $root.Values.global.imageTag }}
+        ports:
+        - containerPort: {{ $service.port }}
+        env:
+
+        - name: SPRING_APPLICATION_NAME
+          value: {{ $service.name }}
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ $root.Values.springboot.profiles }}
+        - name: SERVER_PORT
+          value: "{{ $service.port }}"
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          value: "http://eureka-server:8761/eureka/"
+          
+        # values-override
+        {{- if hasKey $root.Values.databases $key }}
+        {{- $db := index $root.Values.databases $key }}
+        - name: DB_HOST
+          value: {{ $db.host | quote }}
+        - name: DB_PORT
+          value: {{ $db.port | quote }}
+        - name: DB_NAME
+          value: {{ $db.database | quote }}
+        - name: DB_USERNAME
+          value: {{ $db.username | quote }}
+        - name: DB_PASSWORD
+          value: {{ $db.password | quote }}
+        - name: DB_URL
+          value: {{ $db.jdbcUrl | quote }}
+        {{- end }}
+        
+        - name: JPA_DDL_CONFIG
+          value: {{ $root.Values.springboot.jpa.ddlAuto }}
+        - name: JPA_SHOW_SQL
+          value: {{ $root.Values.springboot.jpa.showSql | quote }}
+          
+        - name: TZ
+          value: {{ $root.Values.springboot.timezone }}
+          
+        {{- if $service.emailEnabled }}
+        - name: SPRING_MAIL_HOST
+          value: {{ $root.Values.email.host }}
+        - name: SPRING_MAIL_USERNAME
+          value: {{ $root.Values.email.username }}
+        - name: SPRING_MAIL_PASSWORD
+          value: {{ $root.Values.email.password }}
+        - name: SPRING_MAIL_PORT
+          value: "587"
+        - name: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
+          value: "true"
+        - name: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+          value: "true"
+        {{- end }}
+          
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+            
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: {{ $service.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: {{ $service.port }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $service.name }}
+  namespace: {{ $root.Values.global.namespace }}
+  labels:
+    app: {{ $service.name }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: {{ $service.port }}
+    protocol: TCP
+  selector:
+    app: {{ $service.name }}
+{{- end }}
+{{- end }}
