@@ -1,255 +1,433 @@
 apiVersion: apps/v1
+
 kind: Deployment
+
 metadata:
+
   name: eureka-server
+
   namespace: {{ .Values.namespace }}
+
 spec:
+
   replicas: 1
+
   strategy:
+
     type: Recreate
+
   selector:
+
     matchLabels:
+
       app: eureka-server
+
   template:
+
     metadata:
+
       labels:
+
         app: eureka-server
+
     spec:
+
       containers:
+
       - name: eureka-server
+
         image: {{ .Values.dockerhubUser }}/{{ .Values.eurekaServer.image }}:{{ .Values.imageTag }}
+
         ports:
+
         - containerPort: {{ .Values.eurekaServer.port }}
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "150m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
+
         env:
+
         - name: SPRING_PROFILES_ACTIVE
+
           value: {{ .Values.springProfiles }}
+
         - name: SERVER_PORT
+
           value: "{{ .Values.eurekaServer.port }}"
+
         - name: EUREKA_INSTANCE_HOSTNAME
+
           value: eureka-server
+
         - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+
           value: "false"
+
         - name: EUREKA_CLIENT_FETCH_REGISTRY
+
           value: "false"
+
         - name: SPRING_CLOUD_CONFIG_ENABLED
+
           value: "false"
+
         readinessProbe:
+
           httpGet:
+
             path: /actuator/health/readiness
+
             port: {{ .Values.eurekaServer.port }}
+
           initialDelaySeconds: 30
+
           periodSeconds: 10
+
         livenessProbe:
+
           httpGet:
+
             path: /actuator/health/liveness
+
             port: {{ .Values.eurekaServer.port }}
+
           initialDelaySeconds: 60
+
           periodSeconds: 30
+
 ---
+
 apiVersion: v1
+
 kind: Service
+
 metadata:
+
   name: eureka-server
+
   namespace: {{ .Values.namespace }}
+
 spec:
 
   type: ClusterIP
+
   ports:
+
   - port: {{ .Values.eurekaServer.port }}
+
     targetPort: {{ .Values.eurekaServer.port }}
+
   selector:
+
     app: eureka-server
 
+
 ---
+
 apiVersion: apps/v1
+
 kind: Deployment
+
 metadata:
+
   name: config-server
+
   namespace: {{ .Values.namespace }}
+
 spec:
+
   replicas: 1
+
   strategy:
+
     type: Recreate
+
   selector:
+
     matchLabels:
+
       app: config-server
+
   template:
+
     metadata:
+
       labels:
+
         app: config-server
+
     spec:
+
       containers:
+
       - name: config-server
+
         image: {{ .Values.dockerhubUser }}/{{ .Values.configServer.image }}:{{ .Values.imageTag }}
+
         ports:
+
         - containerPort: {{ .Values.configServer.port }}
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "150m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
+
         env:
+
         - name: SPRING_PROFILES_ACTIVE
+
           value: native
+
         - name: SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS
+
           value: file:/etc/config
+
         - name: SERVER_PORT
+
           value: "{{ .Values.configServer.port }}"
+
         - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+
           value: {{ .Values.eurekaUrl }}
+
         - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+
           value: "true"
+
         volumeMounts:
+
           - name: config-server-files
+
             mountPath: /etc/config
+
         readinessProbe:
+
           httpGet:
+
             path: /actuator/health/readiness
+
             port: {{ .Values.configServer.port }}
+
           initialDelaySeconds: 30
+
           periodSeconds: 10
+
         livenessProbe:
+
           httpGet:
+
             path: /actuator/health/liveness
+
             port: {{ .Values.configServer.port }}
+
           initialDelaySeconds: 60
+
           periodSeconds: 30
+
       volumes:
+
         - name: config-server-files
+
           configMap:
+
             name: config-server-files
+
 ---
+
 apiVersion: v1
+
 kind: Service
+
 metadata:
+
   name: config-server
+
   namespace: {{ .Values.namespace }}
+
 spec:
+
   type: ClusterIP
+
   ports:
+
   - port: {{ .Values.configServer.port }}
+
     targetPort: {{ .Values.configServer.port }}
+
   selector:
+
     app: config-server
 
+
 ---
+
 apiVersion: apps/v1
+
 kind: Deployment
+
 metadata:
+
   name: api-gateway
-  namespace: {{ .Values.namespace }}
+
+  namespace: kartingrm
+
   labels:
-    app: api-gateway
+
     app.kubernetes.io/managed-by: Helm
+
   annotations:
-    meta.helm.sh/release-name: {{ .Release.Name }}
-    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+
+    meta.helm.sh/release-name: kartingrm
+
+    meta.helm.sh/release-namespace: kartingrm
+
 spec:
+
   replicas: 1
+
   strategy:
+
     type: Recreate
+
   selector:
+
     matchLabels:
+
       app: api-gateway
+
   template:
+
     metadata:
+
       labels:
+
         app: api-gateway
+
     spec:
+
       containers:
+
       - name: api-gateway
-        image: {{ .Values.dockerhubUser }}/{{ .Values.apiGateway.image }}:{{ .Values.imageTag }}
+
+        image: solarc3/api-gateway:latest
+
         ports:
-        - containerPort: {{ .Values.apiGateway.port }}
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "150m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
+
+        - containerPort: 8080
+
         env:
-        - name: SPRING_APPLICATION_NAME
-          value: "api-gateway"
+
         - name: SPRING_PROFILES_ACTIVE
-          value: {{ .Values.springProfiles }}
+
+          value: gcp
+
         - name: SERVER_PORT
-          value: "{{ .Values.apiGateway.port }}"
+
+          value: "8080"
+
         - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-          value: {{ .Values.eurekaUrl }}
+
+          value: http://eureka-server:8761/eureka/
+
         - name: SPRING_CLOUD_CONFIG_URI
-          value: {{ .Values.configServerUrl }}
+
+          value: http://config-server:8888
+
         - name: SPRING_CONFIG_IMPORT
-          value: "optional:configserver:{{ .Values.configServerUrl }}"
+
+          value: "configserver:http://config-server:8888"
+
         - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
-          value: "true"
-        - name: SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED
-          value: "true"
-        - name: SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_LOWER_CASE_SERVICE_ID
-          value: "true"
 
-
-        # - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY
-        #   value: "DEBUG"
-        # - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_REACTIVE
-        #   value: "DEBUG"
-        # - name: LOGGING_LEVEL_REACTOR_NETTY
-        #   value: "DEBUG"
+          value: "true"
+        - name: SPRING_CLOUD_CONFIG_ENABLED
+          value: "true"
 
         readinessProbe:
+
           httpGet:
+
             path: /actuator/health/readiness
-            port: {{ .Values.apiGateway.port }}
+
+            port: 8080
+
           initialDelaySeconds: 45
+
           periodSeconds: 10
+
           failureThreshold: 5
+
         livenessProbe:
+
           httpGet:
+
             path: /actuator/health/liveness
-            port: {{ .Values.apiGateway.port }}
+
+            port: 8080
+
           initialDelaySeconds: 90
+
           periodSeconds: 30
+
           failureThreshold: 3
+
 ---
+
 apiVersion: v1
+
 kind: Service
+
 metadata:
+
   name: api-gateway
+
   namespace: {{ .Values.namespace }}
+
 spec:
+
   type: LoadBalancer
+
   loadBalancerIP: {{ .Values.apiGateway.loadBalancerIP }}
+
   externalTrafficPolicy: Local
+
   ports:
+
   - port: 80
+
     targetPort: {{ .Values.apiGateway.port }}
+
   selector:
+
     app: api-gateway
+
 ---
+
 apiVersion: networking.k8s.io/v1
+
 kind: Ingress
+
 metadata:
+
   name: api-gateway-ingress
+
   namespace: kartingrm
+
 spec:
+
   ingressClassName: "gce"
+
   rules:
+
     - host: "tingeso.solarworks.cl"
+
       http:
+
         paths:
+
           - path: /eureka
+
             pathType: Prefix
+
             backend:
+
               service:
+
                 name: api-gateway
+
                 port:
+
                   number: 8080
