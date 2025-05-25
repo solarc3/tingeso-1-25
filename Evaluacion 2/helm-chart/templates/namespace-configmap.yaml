@@ -1,45 +1,20 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ .Values.namespace }}
-
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: config-server-files
   namespace: {{ .Values.namespace }}
 data:
-  application.yml: |
-    spring:
-      jpa:
-        hibernate:
-          ddl-auto: update
-        show-sql: true
-        database-platform: org.hibernate.dialect.PostgreSQLDialect
-      
-      datasource:
-        driver-class-name: org.postgresql.Driver
-      
-      mail:
-        properties:
-          mail:
-            smtp:
-              auth: true
-              starttls:
-                enable: true
-    
-    eureka:
-      instance:
-        prefer-ip-address: true
-      client:
-        registry-fetch-interval-seconds: 10
-    
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,info
-      endpoint:
-        health:
-          show-details: always
+  application.properties: |
+    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.show-sql=true
+    spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+
+    spring.datasource.driver-class-name=org.postgresql.Driver
+
+    spring.mail.properties.mail.smtp.auth=true
+    spring.mail.properties.mail.smtp.starttls.enable=true
+
+    eureka.instance.prefer-ip-address=true
+    eureka.client.registry-fetch-interval-seconds=10
+    management.endpoints.web.exposure.include=health,info
+    management.endpoint.health.show-details=always

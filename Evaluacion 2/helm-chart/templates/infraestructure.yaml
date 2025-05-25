@@ -68,9 +68,21 @@ spec:
         - containerPort: {{ .Values.configServer.port }}
         env:
         - name: SPRING_PROFILES_ACTIVE
-          value: {{ .Values.springProfiles }}
+          value: native
+        - name: SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCHLOCATIONS
+          value: configtree:/etc/config/,file:/etc/config/application.properties
         - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
           value: {{ .Values.eurekaUrl }}
+#        - name: SPRING_CONFIG_IMPORT
+#          value: configtree:/etc/config/,file:/etc/config/application.properties
+        volumeMounts:
+          - name: config-server-files
+            mountPath: /etc/config/application.properties
+            subPath: application.properties
+      volumes:
+        - name: config-server-files
+          configMap:
+            name: config-server-files
 ---
 apiVersion: v1
 kind: Service
