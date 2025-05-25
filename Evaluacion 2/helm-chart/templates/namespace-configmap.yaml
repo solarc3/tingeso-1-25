@@ -5,16 +5,107 @@ metadata:
   namespace: {{ .Values.namespace }}
 data:
   application.properties: |
+    eureka.instance.prefer-ip-address=true
+    eureka.client.registry-fetch-interval-seconds=10
+    management.endpoints.web.exposure.include=health,info,env,configprops,refresh
+    management.endpoint.health.show-details=always
+
+  application-microservices.properties: |
     spring.jpa.hibernate.ddl-auto=update
     spring.jpa.show-sql=true
     spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-
     spring.datasource.driver-class-name=org.postgresql.Driver
-
     spring.mail.properties.mail.smtp.auth=true
     spring.mail.properties.mail.smtp.starttls.enable=true
 
-    eureka.instance.prefer-ip-address=true
-    eureka.client.registry-fetch-interval-seconds=10
-    management.endpoints.web.exposure.include=health,info
-    management.endpoint.health.show-details=always
+  api-gateway.properties: |
+    server.port=8080
+    # Rutas del Gateway
+    spring.cloud.gateway.routes[0].id=eureka-server
+    spring.cloud.gateway.routes[0].uri=http://eureka-server:8761
+    spring.cloud.gateway.routes[0].predicates[0]=Path=/eureka/**
+    spring.cloud.gateway.routes[0].filters[0]=StripPrefix=1
+
+    spring.cloud.gateway.routes[1].id=eureka-web-resources
+    spring.cloud.gateway.routes[1].uri=http://eureka-server:8761
+    spring.cloud.gateway.routes[1].predicates[0]=Path=/eureka/css/**, /eureka/js/**, /eureka/images/**
+    spring.cloud.gateway.routes[1].filters[0]=StripPrefix=1
+
+    spring.cloud.gateway.routes[2].id=config-server
+    spring.cloud.gateway.routes[2].uri=http://config-server:8888
+    spring.cloud.gateway.routes[2].predicates[0]=Path=/config/**
+    spring.cloud.gateway.routes[2].filters[0]=StripPrefix=1
+
+    spring.cloud.gateway.routes[3].id=tariffs-service
+    spring.cloud.gateway.routes[3].uri=lb://TARIFFS-SERVICE
+    spring.cloud.gateway.routes[3].predicates[0]=Path=/api/tariffs/**
+    spring.cloud.gateway.routes[3].filters[0]=StripPrefix=2
+
+    spring.cloud.gateway.routes[4].id=reservations-service
+    spring.cloud.gateway.routes[4].uri=lb://RESERVATIONS-SERVICE
+    spring.cloud.gateway.routes[4].predicates[0]=Path=/api/reservations/**
+    spring.cloud.gateway.routes[4].filters[0]=StripPrefix=2
+
+    spring.cloud.gateway.routes[5].id=customer-discounts-service
+    spring.cloud.gateway.routes[5].uri=lb://CUSTOMER-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[5].predicates[0]=Path=/api/customer-discounts/**
+    spring.cloud.gateway.routes[5].filters[0]=StripPrefix=2
+
+    spring.cloud.gateway.routes[6].id=group-discounts-service
+    spring.cloud.gateway.routes[6].uri=lb://GROUP-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[6].predicates[0]=Path=/api/group-discounts/**
+    spring.cloud.gateway.routes[6].filters[0]=StripPrefix=2
+
+    spring.cloud.gateway.routes[7].id=special-rates-service
+    spring.cloud.gateway.routes[7].uri=lb://SPECIAL-RATES-SERVICE
+    spring.cloud.gateway.routes[7].predicates[0]=Path=/api/special-rates/**
+    spring.cloud.gateway.routes[7].filters[0]=StripPrefix=2
+
+    spring.cloud.gateway.routes[8].id=track-schedule-service
+    spring.cloud.gateway.routes[8].uri=lb://TRACK-SCHEDULE-SERVICE
+    spring.cloud.gateway.routes[8].predicates[0]=Path=/api/track-schedule/**
+    spring.cloud.gateway.routes[8].filters[0]=StripPrefix=2
+
+    spring.cloud.gateway.routes[9].id=reports-service
+    spring.cloud.gateway.routes[9].uri=lb://REPORTS-SERVICE
+    spring.cloud.gateway.routes[9].predicates[0]=Path=/api/reports/**
+    spring.cloud.gateway.routes[9].filters[0]=StripPrefix=2
+
+    # Discovery locator para auto-descubrimiento
+    spring.cloud.gateway.discovery.locator.enabled=true
+    spring.cloud.gateway.discovery.locator.lower-case-service-id=true
+
+    # CORS si lo necesitas
+    spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-origins=http://tingeso.solarworks.cl,http://localhost:3000
+    spring.cloud.gateway.globalcors.cors-configurations.[/**].allow-credentials=true
+    spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-methods=GET,POST,PUT,DELETE,OPTIONS
+    spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-headers=*
+
+
+  tariffs-service.properties: |
+    server.port=0
+    spring.profiles.include=microservices
+
+  reservations-service.properties: |
+    server.port=0
+    spring.profiles.include=microservices
+
+  customer-discounts-service.properties: |
+    server.port=0
+    spring.profiles.include=microservices
+
+  group-discounts-service.properties: |
+    server.port=0
+    spring.profiles.include=microservices
+
+  special-rates-service.properties: |
+    server.port=0
+    spring.profiles.include=microservices
+
+  track-schedule-service.properties: |
+    server.port=0
+    spring.profiles.include=microservices
+
+  reports-service.properties: |
+    server.port=0
+    spring.profiles.include=microservices

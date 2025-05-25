@@ -2,15 +2,15 @@ module "gke" {
   source  = "terraform-google-modules/kubernetes-engine/google"
   version = "~> 30.0"
 
-  project_id = var.project_id
-  name       = "microservices-cluster"
-  region     = var.region
-  zones      = ["${var.region}-b"]
+  project_id          = var.project_id
+  name                = "microservices-cluster"
+  region              = var.region
+  zones               = ["${var.region}-b"]
   deletion_protection = false
-  network           = google_compute_network.microservices_vpc.name
-  subnetwork        = google_compute_subnetwork.gke_subnet.name
-  ip_range_pods     = "pods-range"
-  ip_range_services = "services-range"
+  network             = google_compute_network.microservices_vpc.name
+  subnetwork          = google_compute_subnetwork.gke_subnet.name
+  ip_range_pods       = "pods-range"
+  ip_range_services   = "services-range"
 
   http_load_balancing        = true
   network_policy             = false
@@ -53,8 +53,8 @@ module "gke" {
   }
 
   node_pools_tags = {
-    all = ["microservices"]
-  microservices-pool = ["kartingrm","test"]
+    all                = ["microservices"]
+    microservices-pool = ["kartingrm", "test"]
   }
 
   depends_on = [

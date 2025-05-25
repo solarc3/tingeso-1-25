@@ -1,7 +1,8 @@
-data "google_compute_global_address" "microservices_ip" {
-  name = "microservices-static-ip"
+resource "google_compute_address" "microservices_static_ip" {
+  name   = "microservices-static-ip"
+  region = var.region
 }
 
 output "static_ip" {
-  value = data.google_compute_global_address.microservices_ip.address
+  value = google_compute_address.microservices_static_ip.address
 }
