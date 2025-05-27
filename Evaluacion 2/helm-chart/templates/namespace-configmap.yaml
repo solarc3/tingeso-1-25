@@ -3,12 +3,12 @@ kind: ConfigMap
 
 metadata:
   name: config-server-files
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 data:
   application.properties: |
     eureka.instance.prefer-ip-address=true
     eureka.client.registry-fetch-interval-seconds=10
-    management.endpoints.web.exposure.include=health,health/liveness,health/readiness,info,env,configprops,refresh,gateway
+    management.endpoints.web.exposure.include=health,info,env,configprops,refresh,gateway
     management.endpoint.health.probes.enabled=true
     management.health.liveness-state.enabled=true
     management.health.readiness-state.enabled=true
@@ -26,6 +26,7 @@ data:
     server.port=8080
     # Rutas del Gateway
     logging.level.org.springframework.boot.autoconfigure=DEBUG
+    eureka.client.serviceUrl.defaultZone=http://eureka-server:8761/eureka/
     logging.level.org.springframework.cloud.gateway=DEBUG
     spring.cloud.gateway.routes[0].id=eureka-server
     spring.cloud.gateway.routes[0].uri=http://eureka-server:8761

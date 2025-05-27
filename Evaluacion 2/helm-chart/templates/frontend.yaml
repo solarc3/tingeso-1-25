@@ -17,14 +17,14 @@ spec:
       - name: frontend
         image: {{ .Values.dockerhubUser }}/{{ .Values.frontend.image }}:{{ .Values.imageTag }}
         ports:
-        - containerPort: 3000
+        - containerPort: 80
         env:
         - name: REACT_APP_API_URL
           value: {{ .Values.frontend.apiUrl }}
         readinessProbe:
           httpGet:
             path: /
-            port: 3000
+            port: 80
           initialDelaySeconds: 10
           periodSeconds: 5
 ---
@@ -37,6 +37,6 @@ spec:
   type: ClusterIP
   ports:
   - port: 80
-    targetPort: 3000
+    targetPort: 80
   selector:
     app: kartingrm-frontend
