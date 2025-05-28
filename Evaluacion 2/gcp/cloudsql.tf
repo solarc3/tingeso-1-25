@@ -9,11 +9,13 @@ locals {
     "reports-service"         # M7 - Reportes de Ingresos
   ]
 }
-
-resource "google_sql_database_instance" "microservice_db" {
-  for_each = toset(local.microservices)
-
-  name             = "${each.value}-db-instance"
+variable "namespace" {
+  description = "Kubernetes namespace for the db-credentials Secret"
+  type        = string
+  default     = "default"
+}
+resource "google_sql_database_instance" "main" {
+  name             = "kartingrm-postgres"  
   database_version = "POSTGRES_17"
   region           = var.region
 
@@ -35,20 +37,46 @@ resource "google_sql_database_instance" "microservice_db" {
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
-resource "google_sql_database" "microservice_database" {
+resource "google_sql_database" "db" {
   for_each = toset(local.microservices)
 
   name     = replace(each.value, "-", "_")
-  instance = google_sql_database_instance.microservice_db[each.value].name
-}
+  instance = google_sql_database_instance.main.name
+ }
 
-resource "google_sql_user" "microservice_user" {
+resource "google_sql_user" "user" {
   for_each = toset(local.microservices)
 
   name     = "${replace(each.value, "-", "_")}_user"
-  instance = google_sql_database_instance.microservice_db[each.value].name
+  instance = google_sql_database_instance.main.name
   password = "KartingRM2025!"
+ }
 
+resource "kubernetes_secret" "db_credentials" {
+  metadata {
+    name      = "db-credentials"
+    namespace = var.namespace
+  }
+  type = "Opaque"
+
+  data = merge(
+    {
+      HOST = google_sql_database_instance.main.private_ip_address
+      PORT = "5432"
+    },
+    {
+      for svc in local.microservices :
+      "${replace(svc, "-", "_")}_DB"   => google_sql_database.db[svc].name
+    },
+    {
+      for svc in local.microservices :
+      "${replace(svc, "-", "_")}_USER" => google_sql_user.user[svc].name
+    },
+    {
+      for svc in local.microservices :
+      "${replace(svc, "-", "_")}_PASS" => google_sql_user.user[svc].password
+    }
+  )
 }
 
 output "database_connections" {
@@ -56,12 +84,12 @@ output "database_connections" {
   value = {
     for service in local.microservices :
     service => {
-      host     = google_sql_database_instance.microservice_db[service].private_ip_address
+      host     = google_sql_database_instance.main.private_ip_address
               port     = "5432"
-      database = google_sql_database.microservice_database[service].name
-      username = google_sql_user.microservice_user[service].name
-      password = google_sql_user.microservice_user[service].password
-      jdbc_url = "jdbc:postgresql://${google_sql_database_instance.microservice_db[service].private_ip_address}:5432/${google_sql_database.microservice_database[service].name}?sslmode=disable&serverTimezone=America/Santiago"
+      database = google_sql_database.db[service].name
+      username = google_sql_user.user[service].name
+      password = google_sql_user.user[service].password
+      jdbc_url = "jdbc:postgresql://${google_sql_database_instance.main.private_ip_address}:5432/${google_sql_database.db[service].name}?sslmode=disable&serverTimezone=America/Santiago"
     }
   }
   sensitive = true
@@ -74,9 +102,9 @@ output "spring_boot_properties_config" {
     service => {
       properties = [
         "# Database Configuration for ${service}",
-        "spring.datasource.url=jdbc:postgresql://${google_sql_database_instance.microservice_db[service].private_ip_address}:5432/${google_sql_database.microservice_database[service].name}?sslmode=disable",
-        "spring.datasource.username=${google_sql_user.microservice_user[service].name}",
-        "spring.datasource.password=${google_sql_user.microservice_user[service].password}",
+        "spring.datasource.url=jdbc:postgresql://${google_sql_database_instance.main.private_ip_address}:5432/${google_sql_database.db[service].name}?sslmode=disable",
+        "spring.datasource.username=${google_sql_user.user[service].name}",
+        "spring.datasource.password=${google_sql_user.user[service].password}",
         "spring.datasource.driver-class-name=org.postgresql.Driver",
         "",
         "# JPA/Hibernate Configuration",
@@ -111,14 +139,14 @@ output "k8s_database_config" {
     for service in local.microservices :
     service => {
       config_map_data = {
-        "DB_HOST"     = google_sql_database_instance.microservice_db[service].private_ip_address
+        "DB_HOST"     = google_sql_database_instance.main.private_ip_address
         "DB_PORT"     = "5432"
-        "DB_NAME"     = google_sql_database.microservice_database[service].name
-        "DB_USERNAME" = google_sql_user.microservice_user[service].name
-        "JDBC_URL"    = "jdbc:postgresql://${google_sql_database_instance.microservice_db[service].private_ip_address}:5432/${google_sql_database.microservice_database[service].name}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago"
+        "DB_NAME"     = google_sql_database.db[service].name
+        "DB_USERNAME" = google_sql_user.user[service].name
+        "JDBC_URL"    = "jdbc:postgresql://${google_sql_database_instance.main.private_ip_address}:5432/${google_sql_database.db[service].name}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago"
       }
       secret_data = {
-        "DB_PASSWORD" = base64encode(google_sql_user.microservice_user[service].password)
+        "DB_PASSWORD" = base64encode(google_sql_user.user[service].password)
       }
     }
   }
@@ -130,11 +158,11 @@ output "database_instances_info" {
   value = {
     for service in local.microservices :
     service => {
-      instance_name    = google_sql_database_instance.microservice_db[service].name
-      connection_name  = google_sql_database_instance.microservice_db[service].connection_name
-      private_ip       = google_sql_database_instance.microservice_db[service].private_ip_address
-      database_version = google_sql_database_instance.microservice_db[service].database_version
-      tier            = google_sql_database_instance.microservice_db[service].settings[0].tier
+      instance_name    = google_sql_database_instance.main.name
+      connection_name  = google_sql_database_instance.main.connection_name
+      private_ip       = google_sql_database_instance.main.private_ip_address
+      database_version = google_sql_database_instance.main.database_version
+      tier            = google_sql_database_instance.main.settings[0].tier
     }
   }
 }
