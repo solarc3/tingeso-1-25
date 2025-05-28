@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: eureka-server
-        image: {{ .Values.dockerhubUser }}/{{ .Values.eurekaServer.image }}:{{ .Values.imageTag }}
+        image: {{ .Values.artifactRegistry.location }}-docker.pkg.dev/{{ .Values.artifactRegistry.projectId }}/{{ .Values.artifactRegistry.repository }}/{{ .Values.eurekaServer.image }}:{{ .Values.imageTag }}
         ports:
         - containerPort: {{ .Values.eurekaServer.port }}
         env:
@@ -84,7 +84,7 @@ spec:
     spec:
       containers:
       - name: config-server
-        image: {{ .Values.dockerhubUser }}/{{ .Values.configServer.image }}:{{ .Values.imageTag }}
+        image: {{ .Values.artifactRegistry.location }}-docker.pkg.dev/{{ .Values.artifactRegistry.projectId }}/{{ .Values.artifactRegistry.repository }}/{{ .Values.configServer.image }}:{{ .Values.imageTag }}
         ports:
         - containerPort: {{ .Values.configServer.port }}
         env:
@@ -157,7 +157,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: solarc3/api-gateway:latest
+        image: {{ .Values.artifactRegistry.location }}-docker.pkg.dev/{{ .Values.artifactRegistry.projectId }}/{{ .Values.artifactRegistry.repository }}/{{ .Values.apiGateway.image }}:{{ .Values.imageTag }}
         ports:
         - containerPort: 8080
         env:

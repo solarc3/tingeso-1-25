@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: {{ .name }}
-        image: {{ $.Values.dockerhubUser }}/{{ .name }}:{{ $.Values.imageTag }}
+        image: {{ $.Values.artifactRegistry.location }}-docker.pkg.dev/{{ $.Values.artifactRegistry.projectId }}/{{ $.Values.artifactRegistry.repository }}/{{ .name }}:{{ $.Values.imageTag }}
         ports:
         - containerPort: 8080
         env:
