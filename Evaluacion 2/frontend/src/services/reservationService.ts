@@ -58,7 +58,7 @@ export const checkPricing = async (reservationData: ReservationRequest): Promise
         endTime: ensureTimezone(reservationData.endTime),
     };
 
-    const response = await api.post('/reservations/check', data);
+    const response = await api.post('/tariffs/check', data);
     return response.data;
 };
 
@@ -92,7 +92,7 @@ function ensureTimezone(dateString: string): string {
 }
 
 export const checkKartAvailability = async (startTime: string, endTime: string): Promise<KartAvailabilityResponse> => {
-    const response = await api.get('/reservations/availability', {
+    const response = await api.get('/tariffs/availability', {
         params: {
             startTime,
             endTime
@@ -102,6 +102,6 @@ export const checkKartAvailability = async (startTime: string, endTime: string):
 };
 
 export const cancelReservation = async (id: number): Promise<ReservationResponse> => {
-    const response = await api.post(`/reservations/${id}/cancel`);
+    const response = await api.post(`/tariffs/${id}/cancel`);
     return response.data;
 };
