@@ -2,11 +2,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: config-server-files
-  namespace: {{ .Values.namespace }}
+  namespace: { { .Values.namespace } }
 data:
   application.properties: |
     eureka.instance.prefer-ip-address=true
     eureka.client.registry-fetch-interval-seconds=10
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
     management.endpoints.web.exposure.include=health,info,env,configprops,refresh,gateway
     management.endpoint.health.probes.enabled=true
     management.health.liveness-state.enabled=true
@@ -14,18 +15,37 @@ data:
     management.endpoint.health.show-details=always
 
   application-microservices.properties: |
+    server.port=0
+
     spring.jpa.hibernate.ddl-auto=update
     spring.jpa.show-sql=true
     spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
     spring.datasource.driver-class-name=org.postgresql.Driver
+
     spring.mail.properties.mail.smtp.auth=true
     spring.mail.properties.mail.smtp.starttls.enable=true
 
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
+    eureka.instance.prefer-ip-address=true
+    eureka.instance.lease-renewal-interval-in-seconds=10
+    eureka.instance.lease-expiration-duration-in-seconds=30
+
+    eureka.instance.non-secure-port-enabled=true
+    eureka.instance.secure-port-enabled=false
+
+    management.endpoints.web.exposure.include=health,info,metrics,env,configprops,mappings,gateway
+    management.endpoint.health.show-details=always
+    management.endpoint.health.probes.enabled=true
+    management.health.livenessState.enabled=true
+    management.health.readinessState.enabled=true
+    management.endpoints.web.base-path=/actuator
+    management.server.port=8081
+    management.server.address=0.0.0.0
+
   api-gateway.properties: |
     server.port=8080
-    # Rutas del Gateway
     logging.level.org.springframework.boot.autoconfigure=DEBUG
-    eureka.client.serviceUrl.defaultZone=http://eureka-server:8761/eureka/
+    eureka.client.serviceUrl.defaultZone={{ .Values.eurekaUrl }}
     logging.level.org.springframework.cloud.gateway=DEBUG
 
     spring.cloud.gateway.routes[0].id=eureka-server
@@ -88,9 +108,14 @@ data:
     spring.cloud.gateway.routes[11].predicates[1]=Method=GET
     spring.cloud.gateway.routes[11].order=100
 
-    spring.cloud.gateway.discovery.locator.enabled=true
+    spring.cloud.gateway.routes[12].id=services-actuator
+    spring.cloud.gateway.routes[12].uri=lb://${serviceId}
+    spring.cloud.gateway.routes[12].predicates[0]=Path=/actuator/{serviceId}/**,/actuator/{serviceId}/**
+    spring.cloud.gateway.routes[12].filters[0]=RewritePath=/actuator/(?<serviceId>[^/]+)/(?<segment>.*), /actuator/$\{segment}
+    spring.cloud.gateway.routes[12].filters[1]=SetPath=/actuator/{segment}
+      spring.cloud.gateway.discovery.locator.enabled=true
     spring.cloud.gateway.discovery.locator.lower-case-service-id=true
-    spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-origins=http://localhost:5173,http://localhost:3000,http://34.176.234.101,http://34.149.56.34,https://tingeso.solarworks.cl
+    spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-origins=http://localhost:5173,http://localhost:3000,http://{{ .Values.apiGateway.loadBalancerIP }},http://34.149.56.34,https://tingeso.solarworks.cl
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-methods=GET,POST,PUT,DELETE,OPTIONS,PATCH
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-headers=*
     spring.cloud.gateway.globalcors.cors-configurations.[/**].exposed-headers=*
@@ -104,28 +129,28 @@ data:
 
   tariffs-service.properties: |
     server.port=0
-    spring.profiles.include=microservices
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   reservations-service.properties: |
     server.port=0
-    spring.profiles.include=microservices
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   customer-discounts-service.properties: |
     server.port=0
-    spring.profiles.include=microservices
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   group-discounts-service.properties: |
     server.port=0
-    spring.profiles.include=microservices
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   special-rates-service.properties: |
     server.port=0
-    spring.profiles.include=microservices
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   track-schedule-service.properties: |
     server.port=0
-    spring.profiles.include=microservices
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   reports-service.properties: |
     server.port=0
-    spring.profiles.include=microservices
+    eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}

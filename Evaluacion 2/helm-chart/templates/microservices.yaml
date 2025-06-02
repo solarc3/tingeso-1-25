@@ -18,80 +18,82 @@ spec:
         app: {{ .name }}
     spec:
       containers:
-      - name: {{ .name }}
-        image: {{ $.Values.artifactRegistry.location }}-docker.pkg.dev/{{ $.Values.artifactRegistry.projectId }}/{{ $.Values.artifactRegistry.repository }}/{{ .name }}:{{ $.Values.imageTag }}
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SPRING_APPLICATION_NAME
-          value: {{ .name }}
-        - name: SPRING_PROFILES_ACTIVE
-          value: {{ $.Values.springProfiles }}
-        - name: SERVER_PORT
-          value: "0"
+        - name: {{ .name }}
+          image: {{ $.Values.artifactRegistry.location }}-docker.pkg.dev/{{ $.Values.artifactRegistry.projectId }}/{{ $.Values.artifactRegistry.repository }}/{{ .name }}:{{ $.Values.imageTag }}
+          ports:
+            - containerPort: 8081
+              name: management
+          env:
+            - name: SERVER_PORT
+              value: "0"
+            - name: MANAGEMENT_SERVER_PORT
+              value: "8081"
+            - name: SPRING_APPLICATION_NAME
+              value: {{ .name }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: "{{ $.Values.springProfiles }},microservices"
 
-        #eureka y config
-        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-          value: {{ $.Values.eurekaUrl }}
-        - name: SPRING_CLOUD_CONFIG_URI
-          value: {{ $.Values.configServerUrl }}
+            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+              value: {{ $.Values.eurekaUrl }}
+            - name: SPRING_CLOUD_CONFIG_URI
+              value: {{ $.Values.configServerUrl }}
+            - name: SPRING_CONFIG_IMPORT
+              value: "configserver:{{ $.Values.configServerUrl }}"
 
-        - name: SPRING_DATASOURCE_URL
-          valueFrom:
-            secretKeyRef:
-              name: {{ .name }}-db-secret
-              key: url
-        - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: {{ .name }}-db-secret
-              key: username
-        - name: SPRING_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .name }}-db-secret
-              key: password
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}-db-secret
+                  key: url
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}-db-secret
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}-db-secret
+                  key: password
 
-        - name: SPRING_MAIL_HOST
-          valueFrom:
-            secretKeyRef:
-              name: email-secret
-              key: host
-        - name: SPRING_MAIL_PORT
-          valueFrom:
-            secretKeyRef:
-              name: email-secret
-              key: port
-        - name: SPRING_MAIL_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: email-secret
-              key: username
-        - name: SPRING_MAIL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: email-secret
-              key: password
-        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
-          value: update
-        - name: SPRING_JPA_SHOW_SQL
-          value: "true"
-        - name: TZ
-          value: America/Santiago
+            - name: SPRING_MAIL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: email-secret
+                  key: host
+            - name: SPRING_MAIL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: email-secret
+                  key: port
+            - name: SPRING_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: email-secret
+                  key: username
+            - name: SPRING_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: email-secret
+                  key: password
 
-        readinessProbe:
-          httpGet:
-            path: /actuator/health/readiness
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            # Timezone
+            - name: TZ
+              value: America/Santiago
 
-        livenessProbe:
-          httpGet:
-            path: /actuator/health/liveness
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: management
+            initialDelaySeconds: 45
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: management
+            initialDelaySeconds: 90
+            periodSeconds: 30
 ---
 apiVersion: v1
 kind: Service
@@ -101,8 +103,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 8080
+    - port: 80
+      targetPort: 8081
+      name: http
   selector:
     app: {{ .name }}
 {{- end }}

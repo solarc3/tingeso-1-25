@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: {{ .Values.dockerhubUser }}/{{ .Values.frontend.image }}:{{ .Values.imageTag }}
+        image: {{ $.Values.artifactRegistry.location }}-docker.pkg.dev/{{ $.Values.artifactRegistry.projectId }}/{{ $.Values.artifactRegistry.repository }}/{{ $.Values.frontend.image }}:{{ $.Values.imageTag }}
         ports:
         - containerPort: 80
         env:
