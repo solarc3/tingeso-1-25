@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: config-server-files
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 data:
   application.properties: |
     eureka.instance.prefer-ip-address=true
@@ -40,7 +40,6 @@ data:
     management.health.readinessState.enabled=true
     management.endpoints.web.base-path=/actuator
     management.server.port=8081
-    management.server.address=0.0.0.0
 
   api-gateway.properties: |
     server.port=8080
