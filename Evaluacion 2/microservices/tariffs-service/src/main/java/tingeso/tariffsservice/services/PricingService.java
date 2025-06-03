@@ -3,38 +3,66 @@ package tingeso.tariffsservice.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import tingeso.tariffsservice.DTO.PricingRequestDto;
 import tingeso.tariffsservice.DTO.PricingResponseDto;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class PricingService {
     private static final BigDecimal IVA = BigDecimal.valueOf(0.19);
 
     private final PriceConfigService priceConfigService;
+    private final RestTemplate restTemplate;
 
     @Autowired
-    public PricingService(PriceConfigService priceConfigService) {
+    public PricingService(PriceConfigService priceConfigService, RestTemplate restTemplate) {
         this.priceConfigService = priceConfigService;
+        this.restTemplate = restTemplate;
     }
 
     public PricingResponseDto calculatePrice(PricingRequestDto request) {
         BigDecimal baseRate = determineBaseRate(request);
-        // TODO: ACA FALTAN PARAMETROS DE DESCUENTO
-        // TODO: AGREGAR BDAY, AMOUNT OF PEOPLE, DEBE LLAMAR OTRO MICROSERVICIO PARA OBTENER LOS DESCUENTOS
-        BigDecimal ivaAmount = baseRate.multiply(IVA);
-        BigDecimal totalPrice = baseRate.add(ivaAmount);
+
+        BigDecimal groupDiscount = getGroupDiscount(baseRate, request.getNumPeople());
+
+        BigDecimal priceAfterDiscount = baseRate.subtract(groupDiscount);
+        BigDecimal ivaAmount = priceAfterDiscount.multiply(IVA);
+        BigDecimal totalPrice = priceAfterDiscount.add(ivaAmount);
 
         return PricingResponseDto.builder()
             .baseRate(baseRate)
-            .groupDiscount(baseRate)
-            .frequencyDiscount(baseRate)
-            .birthdayDiscount(baseRate)
+            .groupDiscount(groupDiscount)
+            .frequencyDiscount(BigDecimal.ZERO) // TODO
+            .birthdayDiscount(BigDecimal.ZERO)  // TODO
             .tax(ivaAmount)
             .totalAmount(totalPrice)
             .build();
+    }
+
+    private BigDecimal getGroupDiscount(BigDecimal basePrice, Integer numberOfPeople) {
+        if (numberOfPeople == null || numberOfPeople <= 2) {
+            return BigDecimal.ZERO;
+        }
+
+        try {
+            Map<String, Object> request = new HashMap<>();
+            request.put("basePrice", basePrice);
+            request.put("numberOfPeople", numberOfPeople);
+
+            return restTemplate.postForObject(
+                "http://GROUP-DISCOUNTS-SERVICE/api/group-discounts/group",
+                request,
+                BigDecimal.class
+                                             );
+        } catch (Exception e) {
+            System.err.println("Error al llamar al servicio de descuentos de grupo: " + e.getMessage());
+            return BigDecimal.ZERO;
+        }
     }
 
     private BigDecimal determineBaseRate(PricingRequestDto request) {
