@@ -29,15 +29,16 @@ public class PricingService {
         BigDecimal baseRate = determineBaseRate(request);
 
         BigDecimal groupDiscount = getGroupDiscount(baseRate, request.getNumPeople());
-
-        BigDecimal priceAfterDiscount = baseRate.subtract(groupDiscount);
-        BigDecimal ivaAmount = priceAfterDiscount.multiply(IVA);
-        BigDecimal totalPrice = priceAfterDiscount.add(ivaAmount);
+        BigDecimal freqDiscount = getFreqDiscount(baseRate, request.getMonthlyVisits());
+        BigDecimal totalDiscount = groupDiscount.add(freqDiscount);
+        BigDecimal netPrice = baseRate.subtract(totalDiscount);
+        BigDecimal ivaAmount = netPrice.multiply(IVA);
+        BigDecimal totalPrice = netPrice.add(ivaAmount);
 
         return PricingResponseDto.builder()
             .baseRate(baseRate)
             .groupDiscount(groupDiscount)
-            .frequencyDiscount(BigDecimal.ZERO) // TODO
+            .frequencyDiscount(freqDiscount) // TODO
             .birthdayDiscount(BigDecimal.ZERO)  // TODO
             .tax(ivaAmount)
             .totalAmount(totalPrice)
@@ -57,24 +58,43 @@ public class PricingService {
             return restTemplate.postForObject(
                 "http://GROUP-DISCOUNTS-SERVICE/api/group-discounts/group",
                 request,
-                BigDecimal.class
-                                             );
+                BigDecimal.class);
         } catch (Exception e) {
             System.err.println("Error al llamar al servicio de descuentos de grupo: " + e.getMessage());
             return BigDecimal.ZERO;
         }
     }
 
+    private BigDecimal getFreqDiscount(BigDecimal basePrice, Integer MonthlyVisits) {
+        try {
+            Map<String, Object> request = new HashMap<>();
+            request.put("basePrice", basePrice);
+            request.put("monthlyVisits", MonthlyVisits);
+            return restTemplate.postForObject(
+                "http://CUSTOMER-DISCOUNTS-SERVICE/api/customer-discounts/monthly",
+                request,
+                BigDecimal.class);
+        } catch (Exception e) {
+            System.err.println("Error al llamar al servicio de descuentos de grupo: " + e.getMessage());
+            return BigDecimal.ZERO;
+        }
+
+    }
+
     private BigDecimal determineBaseRate(PricingRequestDto request) {
         if (request.getLaps() != null) {
             switch (request.getLaps()) {
-                case 10: return priceConfigService.getPrice("VUELTAS_10_PRECIO");
-                case 15: return priceConfigService.getPrice("VUELTAS_15_PRECIO");
-                case 20: return priceConfigService.getPrice("VUELTAS_20_PRECIO");
-                default:   throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Número de vueltas inválido: " + request.getLaps()
-                );
+                case 10:
+                    return priceConfigService.getPrice("VUELTAS_10_PRECIO");
+                case 15:
+                    return priceConfigService.getPrice("VUELTAS_15_PRECIO");
+                case 20:
+                    return priceConfigService.getPrice("VUELTAS_20_PRECIO");
+                default:
+                    throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Número de vueltas inválido: " + request.getLaps()
+                    );
             }
         }
 
