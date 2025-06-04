@@ -30,7 +30,9 @@ public class PricingService {
 
         BigDecimal groupDiscount = getGroupDiscount(baseRate, request.getNumPeople());
         BigDecimal freqDiscount = getFreqDiscount(baseRate, request.getMonthlyVisits());
-        BigDecimal totalDiscount = groupDiscount.add(freqDiscount);
+        BigDecimal birthdayDiscount = getBirthdayDiscount(baseRate, request.getNumPeople(), request.isBirthday());
+        BigDecimal totalDiscount = groupDiscount.add(freqDiscount)
+            .add(birthdayDiscount);
         BigDecimal netPrice = baseRate.subtract(totalDiscount);
         BigDecimal ivaAmount = netPrice.multiply(IVA);
         BigDecimal totalPrice = netPrice.add(ivaAmount);
@@ -38,11 +40,32 @@ public class PricingService {
         return PricingResponseDto.builder()
             .baseRate(baseRate)
             .groupDiscount(groupDiscount)
-            .frequencyDiscount(freqDiscount) // TODO
-            .birthdayDiscount(BigDecimal.ZERO)  // TODO
+            .frequencyDiscount(freqDiscount)
+            .birthdayDiscount(birthdayDiscount)
             .tax(ivaAmount)
             .totalAmount(totalPrice)
             .build();
+    }
+
+    private BigDecimal getBirthdayDiscount(BigDecimal basePrice, int numPeople, boolean isBirthday) {
+        if (numPeople < 3 || !isBirthday) {
+            return BigDecimal.ZERO;
+        }
+        //no es necesario el 3r argumento, ya que sabiendo que si es cumple, para que tener que volver
+        //a revisar, asi que se queda con solo 2 argumentos denuevo
+        try {
+            Map<String, Object> request = new HashMap<>();
+            request.put("basePrice", basePrice);
+            request.put("numPeople", numPeople);
+            return restTemplate.postForObject(
+                "http://SPECIAL-RATES-SERVICE/api/birthday-discount/",
+                request,
+                BigDecimal.class);
+        } catch (Exception e) {
+            System.err.println("Error al llamar al servicio de descuentos de grupo: " + e.getMessage());
+            return BigDecimal.ZERO;
+        }
+
     }
 
     private BigDecimal getGroupDiscount(BigDecimal basePrice, Integer numberOfPeople) {
