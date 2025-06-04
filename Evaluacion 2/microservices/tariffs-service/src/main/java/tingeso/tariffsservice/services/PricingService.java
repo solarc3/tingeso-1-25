@@ -28,17 +28,20 @@ public class PricingService {
     public PricingResponseDto calculatePrice(PricingRequestDto request) {
         BigDecimal baseRate = determineBaseRate(request);
 
-        BigDecimal groupDiscount = getGroupDiscount(baseRate, request.getNumPeople());
-        BigDecimal freqDiscount = getFreqDiscount(baseRate, request.getMonthlyVisits());
-        BigDecimal birthdayDiscount = getBirthdayDiscount(baseRate, request.getNumPeople(), request.isBirthday());
+        BigDecimal totalBasePrice = baseRate.multiply(BigDecimal.valueOf(request.getNumPeople()));
+
+        BigDecimal groupDiscount = getGroupDiscount(totalBasePrice, request.getNumPeople());
+        BigDecimal freqDiscount = getFreqDiscount(totalBasePrice, request.getMonthlyVisits());
+        BigDecimal birthdayDiscount = getBirthdayDiscount(totalBasePrice, request.getNumPeople(), request.isBirthday());
+
         BigDecimal totalDiscount = groupDiscount.add(freqDiscount)
             .add(birthdayDiscount);
-        BigDecimal netPrice = baseRate.subtract(totalDiscount);
+        BigDecimal netPrice = totalBasePrice.subtract(totalDiscount);
         BigDecimal ivaAmount = netPrice.multiply(IVA);
         BigDecimal totalPrice = netPrice.add(ivaAmount);
 
         return PricingResponseDto.builder()
-            .baseRate(baseRate)
+            .baseRate(totalBasePrice)
             .groupDiscount(groupDiscount)
             .frequencyDiscount(freqDiscount)
             .birthdayDiscount(birthdayDiscount)
@@ -47,35 +50,33 @@ public class PricingService {
             .build();
     }
 
-    private BigDecimal getBirthdayDiscount(BigDecimal basePrice, int numPeople, boolean isBirthday) {
+    private BigDecimal getBirthdayDiscount(BigDecimal totalBasePrice, int numPeople, boolean isBirthday) {
         if (numPeople < 3 || !isBirthday) {
             return BigDecimal.ZERO;
         }
-        //no es necesario el 3r argumento, ya que sabiendo que si es cumple, para que tener que volver
-        //a revisar, asi que se queda con solo 2 argumentos denuevo
+
         try {
             Map<String, Object> request = new HashMap<>();
-            request.put("basePrice", basePrice);
+            request.put("basePrice", totalBasePrice);
             request.put("numPeople", numPeople);
             return restTemplate.postForObject(
                 "http://SPECIAL-RATES-SERVICE/api/birthday-discount/",
                 request,
                 BigDecimal.class);
         } catch (Exception e) {
-            System.err.println("Error al llamar al servicio de descuentos de grupo: " + e.getMessage());
+            System.err.println("Error al llamar al servicio de descuentos de cumpleaños: " + e.getMessage());
             return BigDecimal.ZERO;
         }
-
     }
 
-    private BigDecimal getGroupDiscount(BigDecimal basePrice, Integer numberOfPeople) {
+    private BigDecimal getGroupDiscount(BigDecimal totalBasePrice, Integer numberOfPeople) {
         if (numberOfPeople == null || numberOfPeople <= 2) {
             return BigDecimal.ZERO;
         }
 
         try {
             Map<String, Object> request = new HashMap<>();
-            request.put("basePrice", basePrice);
+            request.put("basePrice", totalBasePrice);
             request.put("numberOfPeople", numberOfPeople);
 
             return restTemplate.postForObject(
@@ -88,20 +89,19 @@ public class PricingService {
         }
     }
 
-    private BigDecimal getFreqDiscount(BigDecimal basePrice, Integer MonthlyVisits) {
+    private BigDecimal getFreqDiscount(BigDecimal totalBasePrice, Integer monthlyVisits) {
         try {
             Map<String, Object> request = new HashMap<>();
-            request.put("basePrice", basePrice);
-            request.put("monthlyVisits", MonthlyVisits);
+            request.put("basePrice", totalBasePrice);
+            request.put("monthlyVisits", monthlyVisits);
             return restTemplate.postForObject(
                 "http://CUSTOMER-DISCOUNTS-SERVICE/api/customer-discounts/monthly",
                 request,
                 BigDecimal.class);
         } catch (Exception e) {
-            System.err.println("Error al llamar al servicio de descuentos de grupo: " + e.getMessage());
+            System.err.println("Error al llamar al servicio de descuentos de frecuencia: " + e.getMessage());
             return BigDecimal.ZERO;
         }
-
     }
 
     private BigDecimal determineBaseRate(PricingRequestDto request) {
