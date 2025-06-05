@@ -8,7 +8,7 @@ import tingeso.groupdiscountsservice.DTO.GroupDiscountRequest;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/api/group-discounts")
+//@RequestMapping("/api/group-discounts")
 public class GroupDiscountController {
 
     @Autowired

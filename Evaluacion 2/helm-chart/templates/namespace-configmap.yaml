@@ -128,28 +128,34 @@ data:
 
   tariffs-service.properties: |
     server.port=0
+    gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   reservations-service.properties: |
     server.port=0
+    gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   customer-discounts-service.properties: |
     server.port=0
+    gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   group-discounts-service.properties: |
     server.port=0
+    gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
-
   special-rates-service.properties: |
     server.port=0
+    gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   track-schedule-service.properties: |
     server.port=0
+    gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
 
   reports-service.properties: |
     server.port=0
+    gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}

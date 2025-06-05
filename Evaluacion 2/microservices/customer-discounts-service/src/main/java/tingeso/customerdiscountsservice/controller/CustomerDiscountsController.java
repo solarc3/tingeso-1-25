@@ -11,7 +11,7 @@ import tingeso.customerdiscountsservice.services.CustomerDiscountService;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/api/customer-discounts")
+//@RequestMapping("/api/customer-discounts")
 public class CustomerDiscountsController {
     @Autowired
     private CustomerDiscountService customerDiscountService;

@@ -12,13 +12,13 @@ import tingeso.specialratesservice.services.SpecialRatesService;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/api/birthday-discount")
+//@RequestMapping("/api/birthday-discount")
 public class SpecialRatesController {
 
     @Autowired
     private SpecialRatesService specialRatesService;
 
-    @PostMapping("/")
+    @PostMapping("/birthday-discount/")
     public BigDecimal calculateBirthdayDiscount(@RequestBody SpecialRatesRequest request){
         return specialRatesService.calculateBirthdayDiscount(request.getBasePrice(), request.getNumPeople());
     }

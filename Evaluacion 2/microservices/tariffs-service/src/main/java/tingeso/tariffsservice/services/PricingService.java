@@ -1,6 +1,7 @@
 package tingeso.tariffsservice.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +16,9 @@ import java.util.Map;
 @Service
 public class PricingService {
     private static final BigDecimal IVA = BigDecimal.valueOf(0.19);
+
+    @Value("${gateway.base.url}")
+    private String gatewayBaseUrl;
 
     private final PriceConfigService priceConfigService;
     private final RestTemplate restTemplate;
@@ -59,12 +63,13 @@ public class PricingService {
             Map<String, Object> request = new HashMap<>();
             request.put("basePrice", totalBasePrice);
             request.put("numPeople", numPeople);
-            return restTemplate.postForObject(
-                "http://SPECIAL-RATES-SERVICE/api/birthday-discount/",
-                request,
-                BigDecimal.class);
+
+            // Usar API Gateway en lugar de llamada directa
+            String url = gatewayBaseUrl + "/api/special-rates/birthday-discount/";
+
+            return restTemplate.postForObject(url, request, BigDecimal.class);
         } catch (Exception e) {
-            System.err.println("Error al llamar al servicio de descuentos de cumpleaños: " + e.getMessage());
+            System.err.println("Error al llamar al servicio de descuentos de cumpleaños a través del gateway: " + e.getMessage());
             return BigDecimal.ZERO;
         }
     }
@@ -79,12 +84,12 @@ public class PricingService {
             request.put("basePrice", totalBasePrice);
             request.put("numberOfPeople", numberOfPeople);
 
-            return restTemplate.postForObject(
-                "http://GROUP-DISCOUNTS-SERVICE/api/group-discounts/group",
-                request,
-                BigDecimal.class);
+            // Usar API Gateway en lugar de llamada directa
+            String url = gatewayBaseUrl + "/api/group-discounts/group";
+
+            return restTemplate.postForObject(url, request, BigDecimal.class);
         } catch (Exception e) {
-            System.err.println("Error al llamar al servicio de descuentos de grupo: " + e.getMessage());
+            System.err.println("Error al llamar al servicio de descuentos de grupo a través del gateway: " + e.getMessage());
             return BigDecimal.ZERO;
         }
     }
@@ -94,12 +99,13 @@ public class PricingService {
             Map<String, Object> request = new HashMap<>();
             request.put("basePrice", totalBasePrice);
             request.put("monthlyVisits", monthlyVisits);
-            return restTemplate.postForObject(
-                "http://CUSTOMER-DISCOUNTS-SERVICE/api/customer-discounts/monthly",
-                request,
-                BigDecimal.class);
+
+            // Usar API Gateway en lugar de llamada directa
+            String url = gatewayBaseUrl + "/api/customer-discounts/monthly";
+
+            return restTemplate.postForObject(url, request, BigDecimal.class);
         } catch (Exception e) {
-            System.err.println("Error al llamar al servicio de descuentos de frecuencia: " + e.getMessage());
+            System.err.println("Error al llamar al servicio de descuentos de frecuencia a través del gateway: " + e.getMessage());
             return BigDecimal.ZERO;
         }
     }
@@ -127,5 +133,4 @@ public class PricingService {
         if (duration <= 40) return priceConfigService.getPrice("VUELTAS_20_PRECIO");
         throw new IllegalArgumentException("duración no soportada: " + duration);
     }
-
 }
