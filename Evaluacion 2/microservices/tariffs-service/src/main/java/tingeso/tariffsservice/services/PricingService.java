@@ -64,8 +64,7 @@ public class PricingService {
             request.put("basePrice", totalBasePrice);
             request.put("numPeople", numPeople);
 
-            // Usar API Gateway en lugar de llamada directa
-            String url = gatewayBaseUrl + "/api/special-rates/birthday-discount/";
+            String url = gatewayBaseUrl + "/api/SPECIAL-RATES-SERVICE/birthday-discount/";
 
             return restTemplate.postForObject(url, request, BigDecimal.class);
         } catch (Exception e) {
@@ -84,8 +83,7 @@ public class PricingService {
             request.put("basePrice", totalBasePrice);
             request.put("numberOfPeople", numberOfPeople);
 
-            // Usar API Gateway en lugar de llamada directa
-            String url = gatewayBaseUrl + "/api/group-discounts/group";
+            String url = gatewayBaseUrl + "/api/GROUP-DISCOUNTS-SERVICE/group";
 
             return restTemplate.postForObject(url, request, BigDecimal.class);
         } catch (Exception e) {
@@ -100,8 +98,7 @@ public class PricingService {
             request.put("basePrice", totalBasePrice);
             request.put("monthlyVisits", monthlyVisits);
 
-            // Usar API Gateway en lugar de llamada directa
-            String url = gatewayBaseUrl + "/api/customer-discounts/monthly";
+            String url = gatewayBaseUrl + "/api/CUSTOMER-DISCOUNTS-SERVICE/monthly";
 
             return restTemplate.postForObject(url, request, BigDecimal.class);
         } catch (Exception e) {

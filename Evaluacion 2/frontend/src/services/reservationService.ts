@@ -58,7 +58,7 @@ export const checkPricing = async (reservationData: ReservationRequest): Promise
         endTime: ensureTimezone(reservationData.endTime),
     };
 
-    const response = await api.post('/tariffs/check', data);
+    const response = await api.post('/TARIFFS-SERVICE/check', data);
     return response.data;
 };
 

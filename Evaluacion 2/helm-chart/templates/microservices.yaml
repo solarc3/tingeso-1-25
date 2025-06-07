@@ -18,17 +18,14 @@ spec:
         app: {{ .name }}
     spec:
       containers:
-
         - name: {{ .name }}
           image: {{ $.Values.artifactRegistry.location }}-docker.pkg.dev/{{ $.Values.artifactRegistry.projectId }}/{{ $.Values.artifactRegistry.repository }}/{{ .name }}:{{ $.Values.imageTag }}
           ports:
-            - name: mgmt
-              containerPort: 8081
+            - name: http
+              containerPort: 8080
           env:
             - name: SERVER_PORT
               value: "0"
-            - name: MANAGEMENT_SERVER_PORT
-              value: "8081"
             - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
               value: "true"
             - name: SPRING_APPLICATION_NAME
@@ -80,14 +77,13 @@ spec:
                   name: email-secret
                   key: password
 
-            # Timezone
             - name: TZ
               value: America/Santiago
 
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: mgmt
+              port: http
             failureThreshold: 6
             periodSeconds: 5
             initialDelaySeconds: 10
@@ -95,7 +91,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: mgmt
+              port: http
             failureThreshold: 3
             periodSeconds: 10
             initialDelaySeconds: 30
@@ -103,7 +99,7 @@ spec:
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: mgmt
+              port: http
             failureThreshold: 30
             periodSeconds: 10
             initialDelaySeconds: 30
@@ -117,9 +113,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: mgmt
-      port: 8081
-      targetPort: mgmt
+    - name: http
+      port: 80
+      targetPort: http
   selector:
     app: {{ .name }}
 {{- end }}

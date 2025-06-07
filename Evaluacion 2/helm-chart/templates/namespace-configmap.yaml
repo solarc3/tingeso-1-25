@@ -33,13 +33,15 @@ data:
     eureka.instance.non-secure-port-enabled=true
     eureka.instance.secure-port-enabled=false
 
+    # Exponer actuator en el puerto principal, no en puerto separado
     management.endpoints.web.exposure.include=health,info,metrics,env,configprops,mappings,gateway
     management.endpoint.health.show-details=always
     management.endpoint.health.probes.enabled=true
     management.health.livenessState.enabled=true
     management.health.readinessState.enabled=true
     management.endpoints.web.base-path=/actuator
-    management.server.port=8081
+    # Comentar o eliminar esta línea para usar el puerto principal
+    # management.server.port=8081
 
   api-gateway.properties: |
     server.port=8080
@@ -47,78 +49,108 @@ data:
     eureka.client.serviceUrl.defaultZone={{ .Values.eurekaUrl }}
     logging.level.org.springframework.cloud.gateway=DEBUG
 
-    spring.cloud.gateway.routes[0].id=eureka-server
-    spring.cloud.gateway.routes[0].uri=http://eureka-server:8761
-    spring.cloud.gateway.routes[0].predicates[0]=Path=/eureka/**
-    spring.cloud.gateway.routes[0].filters[0]=StripPrefix=1
+    # Rutas específicas para cada microservicio (más predecible)
+    spring.cloud.gateway.routes[0].id=tariffs-service
+    spring.cloud.gateway.routes[0].uri=lb://TARIFFS-SERVICE
+    spring.cloud.gateway.routes[0].predicates[0]=Path=/api/TARIFFS-SERVICE/**
+    spring.cloud.gateway.routes[0].filters[0]=RewritePath=/api/TARIFFS-SERVICE/(?<remaining>.*), /${remaining}
 
-    spring.cloud.gateway.routes[1].id=config-server
-    spring.cloud.gateway.routes[1].uri=http://config-server:8888
-    spring.cloud.gateway.routes[1].predicates[0]=Path=/config/**
-    spring.cloud.gateway.routes[1].filters[0]=StripPrefix=1
+    spring.cloud.gateway.routes[1].id=reservations-service
+    spring.cloud.gateway.routes[1].uri=lb://RESERVATIONS-SERVICE
+    spring.cloud.gateway.routes[1].predicates[0]=Path=/api/RESERVATIONS-SERVICE/**
+    spring.cloud.gateway.routes[1].filters[0]=RewritePath=/api/RESERVATIONS-SERVICE/(?<remaining>.*), /${remaining}
 
-    spring.cloud.gateway.routes[2].id=tariffs-service
-    spring.cloud.gateway.routes[2].uri=lb://TARIFFS-SERVICE
-    spring.cloud.gateway.routes[2].predicates[0]=Path=/api/tariffs/**
-    spring.cloud.gateway.routes[2].filters[0]=StripPrefix=2
+    spring.cloud.gateway.routes[2].id=customer-discounts-service
+    spring.cloud.gateway.routes[2].uri=lb://CUSTOMER-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[2].predicates[0]=Path=/api/CUSTOMER-DISCOUNTS-SERVICE/**
+    spring.cloud.gateway.routes[2].filters[0]=RewritePath=/api/CUSTOMER-DISCOUNTS-SERVICE/(?<remaining>.*), /${remaining}
 
-    spring.cloud.gateway.routes[3].id=reservations-service
-    spring.cloud.gateway.routes[3].uri=lb://RESERVATIONS-SERVICE
-    spring.cloud.gateway.routes[3].predicates[0]=Path=/api/reservations/**
-    spring.cloud.gateway.routes[3].filters[0]=StripPrefix=2
+    spring.cloud.gateway.routes[3].id=group-discounts-service
+    spring.cloud.gateway.routes[3].uri=lb://GROUP-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[3].predicates[0]=Path=/api/GROUP-DISCOUNTS-SERVICE/**
+    spring.cloud.gateway.routes[3].filters[0]=RewritePath=/api/GROUP-DISCOUNTS-SERVICE/(?<remaining>.*), /${remaining}
 
-    spring.cloud.gateway.routes[4].id=customer-discounts-service
-    spring.cloud.gateway.routes[4].uri=lb://CUSTOMER-DISCOUNTS-SERVICE
-    spring.cloud.gateway.routes[4].predicates[0]=Path=/api/customer-discounts/**
-    spring.cloud.gateway.routes[4].filters[0]=StripPrefix=2
+    spring.cloud.gateway.routes[4].id=special-rates-service
+    spring.cloud.gateway.routes[4].uri=lb://SPECIAL-RATES-SERVICE
+    spring.cloud.gateway.routes[4].predicates[0]=Path=/api/SPECIAL-RATES-SERVICE/**
+    spring.cloud.gateway.routes[4].filters[0]=RewritePath=/api/SPECIAL-RATES-SERVICE/(?<remaining>.*), /${remaining}
 
-    spring.cloud.gateway.routes[5].id=group-discounts-service
-    spring.cloud.gateway.routes[5].uri=lb://GROUP-DISCOUNTS-SERVICE
-    spring.cloud.gateway.routes[5].predicates[0]=Path=/api/group-discounts/**
-    spring.cloud.gateway.routes[5].filters[0]=StripPrefix=2
+    spring.cloud.gateway.routes[5].id=track-schedule-service
+    spring.cloud.gateway.routes[5].uri=lb://TRACK-SCHEDULE-SERVICE
+    spring.cloud.gateway.routes[5].predicates[0]=Path=/api/TRACK-SCHEDULE-SERVICE/**
+    spring.cloud.gateway.routes[5].filters[0]=RewritePath=/api/TRACK-SCHEDULE-SERVICE/(?<remaining>.*), /${remaining}
 
-    spring.cloud.gateway.routes[6].id=special-rates-service
-    spring.cloud.gateway.routes[6].uri=lb://SPECIAL-RATES-SERVICE
-    spring.cloud.gateway.routes[6].predicates[0]=Path=/api/special-rates/**
-    spring.cloud.gateway.routes[6].filters[0]=StripPrefix=2
+    spring.cloud.gateway.routes[6].id=reports-service
+    spring.cloud.gateway.routes[6].uri=lb://REPORTS-SERVICE
+    spring.cloud.gateway.routes[6].predicates[0]=Path=/api/REPORTS-SERVICE/**
+    spring.cloud.gateway.routes[6].filters[0]=RewritePath=/api/REPORTS-SERVICE/(?<remaining>.*), /${remaining}
 
-    spring.cloud.gateway.routes[7].id=track-schedule-service
-    spring.cloud.gateway.routes[7].uri=lb://TRACK-SCHEDULE-SERVICE
-    spring.cloud.gateway.routes[7].predicates[0]=Path=/api/track-schedule/**
-    spring.cloud.gateway.routes[7].filters[0]=StripPrefix=2
+    # Actuator endpoints para todos los servicios (puerto principal)
+    spring.cloud.gateway.routes[7].id=actuator-tariffs
+    spring.cloud.gateway.routes[7].uri=lb://TARIFFS-SERVICE
+    spring.cloud.gateway.routes[7].predicates[0]=Path=/actuator/TARIFFS-SERVICE/**
+    spring.cloud.gateway.routes[7].filters[0]=RewritePath=/actuator/TARIFFS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
-    spring.cloud.gateway.routes[8].id=reports-service
-    spring.cloud.gateway.routes[8].uri=lb://REPORTS-SERVICE
-    spring.cloud.gateway.routes[8].predicates[0]=Path=/api/reports/**
-    spring.cloud.gateway.routes[8].filters[0]=StripPrefix=2
+    spring.cloud.gateway.routes[8].id=actuator-reservations
+    spring.cloud.gateway.routes[8].uri=lb://RESERVATIONS-SERVICE
+    spring.cloud.gateway.routes[8].predicates[0]=Path=/actuator/RESERVATIONS-SERVICE/**
+    spring.cloud.gateway.routes[8].filters[0]=RewritePath=/actuator/RESERVATIONS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
-    spring.cloud.gateway.routes[9].id=frontend-static
-    spring.cloud.gateway.routes[9].uri=http://kartingrm-frontend:80
-    spring.cloud.gateway.routes[9].predicates[0]=Path=/static/**,/assets/**,/index.html,/favicon.ico,/manifest.json,/robots.txt
+    spring.cloud.gateway.routes[9].id=actuator-customer-discounts
+    spring.cloud.gateway.routes[9].uri=lb://CUSTOMER-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[9].predicates[0]=Path=/actuator/CUSTOMER-DISCOUNTS-SERVICE/**
+    spring.cloud.gateway.routes[9].filters[0]=RewritePath=/actuator/CUSTOMER-DISCOUNTS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
-    spring.cloud.gateway.routes[10].id=frontend-root
-    spring.cloud.gateway.routes[10].uri=http://kartingrm-frontend:80
-    spring.cloud.gateway.routes[10].predicates[0]=Path=/
-    spring.cloud.gateway.routes[10].predicates[1]=Method=GET
+    spring.cloud.gateway.routes[10].id=actuator-group-discounts
+    spring.cloud.gateway.routes[10].uri=lb://GROUP-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[10].predicates[0]=Path=/actuator/GROUP-DISCOUNTS-SERVICE/**
+    spring.cloud.gateway.routes[10].filters[0]=RewritePath=/actuator/GROUP-DISCOUNTS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
-    spring.cloud.gateway.routes[11].id=frontend-catchall
-    spring.cloud.gateway.routes[11].uri=http://kartingrm-frontend:80
-    spring.cloud.gateway.routes[11].predicates[0]=Path=/**
-    spring.cloud.gateway.routes[11].predicates[1]=Method=GET
-    spring.cloud.gateway.routes[11].order=100
+    spring.cloud.gateway.routes[11].id=actuator-special-rates
+    spring.cloud.gateway.routes[11].uri=lb://SPECIAL-RATES-SERVICE
+    spring.cloud.gateway.routes[11].predicates[0]=Path=/actuator/SPECIAL-RATES-SERVICE/**
+    spring.cloud.gateway.routes[11].filters[0]=RewritePath=/actuator/SPECIAL-RATES-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
-    spring.cloud.gateway.routes[12].id=services-actuator
-    spring.cloud.gateway.routes[12].uri=lb://${serviceId}
-    spring.cloud.gateway.routes[12].predicates[0]=Path=/actuator/{serviceId}/**,/actuator/{serviceId}/**
-    spring.cloud.gateway.routes[12].filters[0]=RewritePath=/actuator/(?<serviceId>[^/]+)/(?<segment>.*), /actuator/$\{segment}
-    spring.cloud.gateway.routes[12].filters[1]=SetPath=/actuator/{segment}
-      spring.cloud.gateway.discovery.locator.enabled=true
-    spring.cloud.gateway.discovery.locator.lower-case-service-id=true
+    spring.cloud.gateway.routes[12].id=actuator-track-schedule
+    spring.cloud.gateway.routes[12].uri=lb://TRACK-SCHEDULE-SERVICE
+    spring.cloud.gateway.routes[12].predicates[0]=Path=/actuator/TRACK-SCHEDULE-SERVICE/**
+    spring.cloud.gateway.routes[12].filters[0]=RewritePath=/actuator/TRACK-SCHEDULE-SERVICE/(?<remaining>.*), /actuator/${remaining}
+
+    spring.cloud.gateway.routes[13].id=actuator-reports
+    spring.cloud.gateway.routes[13].uri=lb://REPORTS-SERVICE
+    spring.cloud.gateway.routes[13].predicates[0]=Path=/actuator/REPORTS-SERVICE/**
+    spring.cloud.gateway.routes[13].filters[0]=RewritePath=/actuator/REPORTS-SERVICE/(?<remaining>.*), /actuator/${remaining}
+
+    # Frontend - rutas estáticas primero
+    spring.cloud.gateway.routes[14].id=frontend-static
+    spring.cloud.gateway.routes[14].uri=http://kartingrm-frontend:80
+    spring.cloud.gateway.routes[14].predicates[0]=Path=/static/**,/assets/**,/index.html,/favicon.ico,/manifest.json,/robots.txt
+
+    # Frontend - root
+    spring.cloud.gateway.routes[15].id=frontend-root
+    spring.cloud.gateway.routes[15].uri=http://kartingrm-frontend:80
+    spring.cloud.gateway.routes[15].predicates[0]=Path=/
+    spring.cloud.gateway.routes[15].predicates[1]=Method=GET
+
+    # Frontend - catch all (debe ir al final con order alto)
+    spring.cloud.gateway.routes[16].id=frontend-catchall
+    spring.cloud.gateway.routes[16].uri=http://kartingrm-frontend:80
+    spring.cloud.gateway.routes[16].predicates[0]=Path=/**
+    spring.cloud.gateway.routes[16].predicates[1]=Method=GET
+    spring.cloud.gateway.routes[16].order=100
+
+    # Eureka UI
+    spring.cloud.gateway.routes[17].id=eureka
+    spring.cloud.gateway.routes[17].uri=http://eureka-server:8761
+    spring.cloud.gateway.routes[17].predicates[0]=Path=/eureka/**
+
+    # CORS configuration
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-origins=http://localhost:5173,http://localhost:3000,http://{{ .Values.apiGateway.loadBalancerIP }},http://34.149.56.34,https://tingeso.solarworks.cl
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-methods=GET,POST,PUT,DELETE,OPTIONS,PATCH
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-headers=*
     spring.cloud.gateway.globalcors.cors-configurations.[/**].exposed-headers=*
 
+    # Management endpoints
     management.endpoint.health.show-details=always
     management.endpoints.access.default=unrestricted
     management.endpoint.health.access=unrestricted
@@ -145,6 +177,7 @@ data:
     server.port=0
     gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
+
   special-rates-service.properties: |
     server.port=0
     gateway.base.url=http://api-gateway:8080
