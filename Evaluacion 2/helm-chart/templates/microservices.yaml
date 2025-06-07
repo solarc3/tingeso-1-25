@@ -23,6 +23,13 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
           env:
             - name: SERVER_PORT
               value: "0"
@@ -86,7 +93,7 @@ spec:
               port: http
             failureThreshold: 6
             periodSeconds: 5
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
 
           livenessProbe:
             httpGet:
@@ -94,7 +101,7 @@ spec:
               port: http
             failureThreshold: 3
             periodSeconds: 10
-            initialDelaySeconds: 30
+            initialDelaySeconds: 45
 
           startupProbe:
             httpGet:
@@ -102,7 +109,7 @@ spec:
               port: http
             failureThreshold: 30
             periodSeconds: 10
-            initialDelaySeconds: 30
+            initialDelaySeconds: 45
 
 ---
 apiVersion: v1
