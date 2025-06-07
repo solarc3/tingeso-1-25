@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import tingeso.tariffsservice.DTO.AvailabilityRequestDto;
-import tingeso.tariffsservice.DTO.AvailabilityResponseDto;
-import tingeso.tariffsservice.DTO.ConflictDto;
-import tingeso.tariffsservice.entities.ReservaEntity;
-import tingeso.tariffsservice.entities.ReservaStatus;
-import tingeso.tariffsservice.repositories.ReservaRepository;
+import tingeso.reservationsservice.DTO.AvailabilityRequestDto;
+import tingeso.reservationsservice.DTO.AvailabilityResponseDto;
+import tingeso.reservationsservice.DTO.ConflictDto;
+import tingeso.reservationsservice.entities.ReservaEntity;
+import tingeso.reservationsservice.entities.ReservaStatus;
+import tingeso.reservationsservice.repositories.ReservaRepository;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -132,6 +132,7 @@ public class AvailabilityService {
                 .collect(Collectors.toList());
             resp.setConflicts(conflicts);
         }
+        //TODO: ENVIAR RESPUESTA A MICROSERVICIO 1 para reserva service check avail
         return resp;
     }
 
@@ -159,7 +160,34 @@ public class AvailabilityService {
 
         return true;
     }
+    public void removeReservation(ReservaEntity res) {
+        if (res.getKartIds() != null) {
+            for (String kartId : res.getKartIds()) {
+                calendar.get(kartId)
+                    .remove(new Interval(res.getStartTime(), res.getEndTime()));
+            }
+        }
+    }
 
+    public void registerKartReservation(String kartId, OffsetDateTime start, OffsetDateTime end) {
+        calendar.get(kartId).add(new Interval(start, end));
+    }
+    public void registerReservation(ReservaEntity res) {
+        if (res.getKartIds() != null && !res.getKartIds().isEmpty()) {
+            System.out.println("Registrando reserva ID: " + res.getId() + " con " + res.getKartIds().size() + " karts");
+            for (String kartId : res.getKartIds()) {
+                NavigableSet<Interval> intervals = calendar.get(kartId);
+                if (intervals != null) {
+                    System.out.println("  - Agregando intervalo para kart " + kartId);
+                    intervals.add(new Interval(res.getStartTime(), res.getEndTime()));
+                } else {
+                    System.out.println("  - ERROR: Kart ID no encontrado: " + kartId);
+                }
+            }
+        } else {
+            System.out.println("No se pueden registrar karts para reserva ID: " + res.getId() + " - no hay karts asignados");
+        }
+    }
 
     @AllArgsConstructor
     private static class Interval implements Comparable<Interval> {

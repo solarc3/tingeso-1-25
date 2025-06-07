@@ -1,4 +1,4 @@
-package tingeso.tariffsservice.DTO;
+package tingeso.reservationsservice.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
