@@ -1,3 +1,5 @@
+# templates/microservices.yaml - Con puerto de management separado
+
 {{- range .Values.microservices }}
 ---
 apiVersion: apps/v1
@@ -23,6 +25,8 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+            - name: management
+              containerPort: 8081
           resources:
             requests:
               cpu: 200m
@@ -33,6 +37,8 @@ spec:
           env:
             - name: SERVER_PORT
               value: "0"
+            - name: MANAGEMENT_SERVER_PORT
+              value: "8081"
             - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
               value: "true"
             - name: SPRING_APPLICATION_NAME
@@ -47,6 +53,7 @@ spec:
             - name: SPRING_CONFIG_IMPORT
               value: "configserver:{{ $.Values.configServerUrl }}"
 
+            # Variables de base de datos
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 secretKeyRef:
@@ -63,6 +70,7 @@ spec:
                   name: {{ .name }}-db-secret
                   key: password
 
+            # Variables de email
             - name: SPRING_MAIL_HOST
               valueFrom:
                 secretKeyRef:
@@ -90,7 +98,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: http
+              port: management
             failureThreshold: 6
             periodSeconds: 5
             initialDelaySeconds: 15
@@ -98,7 +106,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: http
+              port: management
             failureThreshold: 3
             periodSeconds: 10
             initialDelaySeconds: 45
@@ -106,7 +114,7 @@ spec:
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: http
+              port: management
             failureThreshold: 30
             periodSeconds: 10
             initialDelaySeconds: 45
@@ -123,6 +131,9 @@ spec:
     - name: http
       port: 80
       targetPort: http
+    - name: management
+      port: 8081
+      targetPort: management
   selector:
     app: {{ .name }}
 {{- end }}

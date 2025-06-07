@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController
-//@RequestMapping("/")
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class ReservaController {
     private final ReservaService service;
@@ -61,5 +61,14 @@ public class ReservaController {
     public ResponseEntity<AvailabilityResponseDto> checkAvailCarts(@RequestBody AvailabilityRequestDto request){
         AvailabilityResponseDto returning = availabilityService.checkAvail(request);
         return ResponseEntity.ok(returning);
+    }
+    @PostMapping("/check")
+    public ResponseEntity<PricingResponseDto> checkAvailability(@RequestBody ReservaRequestDto req) {
+        System.out.print("tiempo respuesta");
+        System.out.print(req.getStartTime());
+        System.out.print(req.getEndTime());
+
+        PricingResponseDto pricing = service.checkAvailability(req);
+        return ResponseEntity.ok(pricing);
     }
 }

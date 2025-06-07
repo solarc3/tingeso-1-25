@@ -3,8 +3,11 @@ package tingeso.reservationsservice.services;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import tingeso.reservationsservice.DTO.*;
 import tingeso.reservationsservice.entities.ComprobanteEntity;
@@ -26,6 +29,10 @@ public class ReservaService {
     private final ModelMapper modelMapper;
     private final KartService kartService;
     private final ComprobanteService comprobanteService;
+    private final RestTemplate restTemplate;
+
+    @Value("${gateway.base.url}")
+    private String gatewayBaseUrl;
     //TODO: enviar info de checkAvail via controller POST desde ms 1 tarrifs service
     public PricingResponseDto checkAvailability(ReservaRequestDto req) {
         AvailabilityRequestDto aReq = AvailabilityRequestDto.builder()
@@ -43,7 +50,17 @@ public class ReservaService {
 
         PricingRequestDto pReq = modelMapper.map(req, PricingRequestDto.class);
         //TODO: recibir info de tariffs-service ms1, ese maneja la logica de pricing
-        return pricingService.calculatePrice(pReq);
+        return calculatePrice(pReq);
+        //return pricingService.calculatePrice(pReq);
+    }
+    //recibir datos de ms1
+    // endpoint /calculate-price
+    private PricingResponseDto calculatePrice(PricingRequestDto pReq) {
+        try{
+
+            String url = gatewayBaseUrl + "/api/TARIFFS-service/calculate-price";
+            return restTemplate.postForObject(url, pReq, PricingResponseDto.class);
+        }
     }
 
     public ReservaResponseDto createReservation(ReservaRequestDto req) {

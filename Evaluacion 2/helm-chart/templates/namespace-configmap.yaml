@@ -16,31 +16,25 @@ data:
 
   application-microservices.properties: |
     server.port=0
-
     spring.jpa.hibernate.ddl-auto=update
     spring.jpa.show-sql=true
     spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
     spring.datasource.driver-class-name=org.postgresql.Driver
-
     spring.mail.properties.mail.smtp.auth=true
     spring.mail.properties.mail.smtp.starttls.enable=true
-
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
     eureka.instance.prefer-ip-address=true
     eureka.instance.lease-renewal-interval-in-seconds=10
     eureka.instance.lease-expiration-duration-in-seconds=30
-
     eureka.instance.non-secure-port-enabled=true
     eureka.instance.secure-port-enabled=false
-
-    # Exponer actuator en el puerto principal, no en puerto separado
+    management.server.port=8081
     management.endpoints.web.exposure.include=health,info,metrics,env,configprops,mappings,gateway
     management.endpoint.health.show-details=always
     management.endpoint.health.probes.enabled=true
     management.health.livenessState.enabled=true
     management.health.readinessState.enabled=true
-    #management.endpoints.web.base-path=/actuator
-    management.server.port=8081
+    management.endpoints.web.base-path=/actuator
 
   api-gateway.properties: |
     server.port=8080
@@ -84,39 +78,38 @@ data:
     spring.cloud.gateway.routes[6].predicates[0]=Path=/api/REPORTS-SERVICE/**
     spring.cloud.gateway.routes[6].filters[0]=RewritePath=/api/REPORTS-SERVICE/(?<remaining>.*), /${remaining}
 
-    # Actuator endpoints para todos los servicios (puerto principal)
     spring.cloud.gateway.routes[7].id=actuator-tariffs
-    spring.cloud.gateway.routes[7].uri=lb://TARIFFS-SERVICE
+    spring.cloud.gateway.routes[7].uri=http://tariffs-service:8081
     spring.cloud.gateway.routes[7].predicates[0]=Path=/actuator/TARIFFS-SERVICE/**
     spring.cloud.gateway.routes[7].filters[0]=RewritePath=/actuator/TARIFFS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
     spring.cloud.gateway.routes[8].id=actuator-reservations
-    spring.cloud.gateway.routes[8].uri=lb://RESERVATIONS-SERVICE
+    spring.cloud.gateway.routes[8].uri=http://reservations-service:8081
     spring.cloud.gateway.routes[8].predicates[0]=Path=/actuator/RESERVATIONS-SERVICE/**
     spring.cloud.gateway.routes[8].filters[0]=RewritePath=/actuator/RESERVATIONS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
     spring.cloud.gateway.routes[9].id=actuator-customer-discounts
-    spring.cloud.gateway.routes[9].uri=lb://CUSTOMER-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[9].uri=http://customer-discounts-service:8081
     spring.cloud.gateway.routes[9].predicates[0]=Path=/actuator/CUSTOMER-DISCOUNTS-SERVICE/**
     spring.cloud.gateway.routes[9].filters[0]=RewritePath=/actuator/CUSTOMER-DISCOUNTS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
     spring.cloud.gateway.routes[10].id=actuator-group-discounts
-    spring.cloud.gateway.routes[10].uri=lb://GROUP-DISCOUNTS-SERVICE
+    spring.cloud.gateway.routes[10].uri=http://group-discounts-service:8081
     spring.cloud.gateway.routes[10].predicates[0]=Path=/actuator/GROUP-DISCOUNTS-SERVICE/**
     spring.cloud.gateway.routes[10].filters[0]=RewritePath=/actuator/GROUP-DISCOUNTS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
     spring.cloud.gateway.routes[11].id=actuator-special-rates
-    spring.cloud.gateway.routes[11].uri=lb://SPECIAL-RATES-SERVICE
+    spring.cloud.gateway.routes[11].uri=http://special-rates-service:8081
     spring.cloud.gateway.routes[11].predicates[0]=Path=/actuator/SPECIAL-RATES-SERVICE/**
     spring.cloud.gateway.routes[11].filters[0]=RewritePath=/actuator/SPECIAL-RATES-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
     spring.cloud.gateway.routes[12].id=actuator-track-schedule
-    spring.cloud.gateway.routes[12].uri=lb://TRACK-SCHEDULE-SERVICE
+    spring.cloud.gateway.routes[12].uri=http://track-schedule-service:8081
     spring.cloud.gateway.routes[12].predicates[0]=Path=/actuator/TRACK-SCHEDULE-SERVICE/**
     spring.cloud.gateway.routes[12].filters[0]=RewritePath=/actuator/TRACK-SCHEDULE-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
     spring.cloud.gateway.routes[13].id=actuator-reports
-    spring.cloud.gateway.routes[13].uri=lb://REPORTS-SERVICE
+    spring.cloud.gateway.routes[13].uri=http://reports-service:8081
     spring.cloud.gateway.routes[13].predicates[0]=Path=/actuator/REPORTS-SERVICE/**
     spring.cloud.gateway.routes[13].filters[0]=RewritePath=/actuator/REPORTS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
