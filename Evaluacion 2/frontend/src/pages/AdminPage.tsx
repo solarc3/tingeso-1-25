@@ -19,7 +19,6 @@ export default function AdminPage() {
     const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
     const [endDate, setEndDate] = useState<Date>(addDays(new Date(), 7));
 
-    // Estados para los reportes
     const [lapReport, setLapReport] = useState<ReportResponse | null>(null);
     const [peopleReport, setPeopleReport] = useState<ReportResponse | null>(null);
     const [isReportsLoading, setIsReportsLoading] = useState(false);
@@ -41,7 +40,6 @@ export default function AdminPage() {
         }
     };
 
-    // Método para cargar los reportes
     const fetchReports = async () => {
         setIsReportsLoading(true);
         try {
@@ -82,7 +80,6 @@ export default function AdminPage() {
                     <TabsTrigger value="prices">Precios</TabsTrigger>
                 </TabsList>
 
-                {/* Contenido de la pestaña de reservas */}
                 <TabsContent value="reservations">
                     <Card className="mb-8">
                         <CardHeader>
@@ -135,7 +132,6 @@ export default function AdminPage() {
                     )}
                 </TabsContent>
 
-                {/* Pestaña de reportes */}
                 <TabsContent value="reports">
                     <Card className="mb-8">
                         <CardHeader>
@@ -184,7 +180,6 @@ export default function AdminPage() {
                     </div>
                 </TabsContent>
 
-                {/* Pestaña de configuración de precios */}
                 <TabsContent value="prices">
                     <PriceConfigPanel />
                 </TabsContent>

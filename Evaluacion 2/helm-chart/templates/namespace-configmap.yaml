@@ -24,8 +24,8 @@ data:
     spring.jpa.properties.hibernate.jdbc.time_zone=America/Santiago
     spring.sql.init.platform=postgresql
     spring.datasource.driver-class-name=org.postgresql.Driver
-    spring.mail.properties.mail.smtp.auth=true
-    spring.mail.properties.mail.smtp.starttls.enable=true
+    #spring.mail.properties.mail.smtp.auth=true
+    #spring.mail.properties.mail.smtp.starttls.enable=true
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
     eureka.instance.prefer-ip-address=true
     eureka.instance.lease-renewal-interval-in-seconds=10
@@ -46,8 +46,6 @@ data:
     logging.level.org.springframework.boot.autoconfigure=DEBUG
     eureka.client.serviceUrl.defaultZone={{ .Values.eurekaUrl }}
     logging.level.org.springframework.cloud.gateway=DEBUG
-
-    # Rutas específicas para cada microservicio (más predecible)
     spring.cloud.gateway.routes[0].id=tariffs-service
     spring.cloud.gateway.routes[0].uri=lb://TARIFFS-SERVICE
     spring.cloud.gateway.routes[0].predicates[0]=Path=/api/TARIFFS-SERVICE/**
@@ -118,36 +116,30 @@ data:
     spring.cloud.gateway.routes[13].predicates[0]=Path=/actuator/REPORTS-SERVICE/**
     spring.cloud.gateway.routes[13].filters[0]=RewritePath=/actuator/REPORTS-SERVICE/(?<remaining>.*), /actuator/${remaining}
 
-    # Frontend - rutas estáticas primero
     spring.cloud.gateway.routes[14].id=frontend-static
     spring.cloud.gateway.routes[14].uri=http://kartingrm-frontend:80
     spring.cloud.gateway.routes[14].predicates[0]=Path=/static/**,/assets/**,/index.html,/favicon.ico,/manifest.json,/robots.txt
 
-    # Frontend - root
     spring.cloud.gateway.routes[15].id=frontend-root
     spring.cloud.gateway.routes[15].uri=http://kartingrm-frontend:80
     spring.cloud.gateway.routes[15].predicates[0]=Path=/
     spring.cloud.gateway.routes[15].predicates[1]=Method=GET
 
-    # Frontend - catch all (debe ir al final con order alto)
     spring.cloud.gateway.routes[16].id=frontend-catchall
     spring.cloud.gateway.routes[16].uri=http://kartingrm-frontend:80
     spring.cloud.gateway.routes[16].predicates[0]=Path=/**
     spring.cloud.gateway.routes[16].predicates[1]=Method=GET
     spring.cloud.gateway.routes[16].order=100
 
-    # Eureka UI
     spring.cloud.gateway.routes[17].id=eureka
     spring.cloud.gateway.routes[17].uri=http://eureka-server:8761
     spring.cloud.gateway.routes[17].predicates[0]=Path=/eureka/**
 
-    # CORS configuration
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-origins=http://localhost:5173,http://localhost:3000,http://{{ .Values.apiGateway.loadBalancerIP }},http://34.149.56.34,https://tingeso.solarworks.cl
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-methods=GET,POST,PUT,DELETE,OPTIONS,PATCH
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-headers=*
     spring.cloud.gateway.globalcors.cors-configurations.[/**].exposed-headers=*
 
-    # Management endpoints
     management.endpoint.health.show-details=always
     management.endpoints.access.default=unrestricted
     management.endpoint.health.access=unrestricted
@@ -164,6 +156,16 @@ data:
     server.port=0
     gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
+    spring.redis.host=redis-service
+    spring.redis.port={{ .Values.redis.port }}
+    spring.redis.timeout=2000ms
+    spring.redis.lettuce.pool.max-active=8
+    spring.redis.lettuce.pool.max-idle=8
+    spring.redis.lettuce.pool.min-idle=2
+    spring.mail.properties.mail.smtp.auth=true
+    spring.mail.properties.mail.smtp.starttls.enable=true
+    spring.cache.type=redis
+    spring.cache.redis.time-to-live=300000
 
   customer-discounts-service.properties: |
     server.port=0

@@ -12,7 +12,7 @@ export type ReportResponse = {
 };
 
 export const getRevenueByLapsReport = async (startDate: Date, endDate: Date): Promise<ReportResponse> => {
-    const response = await api.get('/reports/revenue-by-laps', {
+    const response = await api.get('/REPORTS-SERVICE/revenue-by-laps', {
         params: {
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
@@ -22,7 +22,7 @@ export const getRevenueByLapsReport = async (startDate: Date, endDate: Date): Pr
 };
 
 export const getRevenueByPeopleReport = async (startDate: Date, endDate: Date): Promise<ReportResponse> => {
-    const response = await api.get('/reports/revenue-by-people', {
+    const response = await api.get('/REPORTS-SERVICE/revenue-by-people', {
         params: {
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
