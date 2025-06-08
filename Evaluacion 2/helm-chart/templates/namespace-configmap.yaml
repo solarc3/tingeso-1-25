@@ -16,7 +16,7 @@ data:
 
   application-microservices.properties: |
     server.port=0
-    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.hibernate.ddl-auto=create-drop
     spring.jpa.show-sql=true
     spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
     spring.sql.init.mode=always
