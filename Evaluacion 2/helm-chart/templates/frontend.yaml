@@ -21,6 +21,9 @@ spec:
         env:
         - name: REACT_APP_API_URL
           value: {{ .Values.frontend.apiUrl }}
+        - name: TZ
+          value: America/Santiago
+
         readinessProbe:
           httpGet:
             path: /

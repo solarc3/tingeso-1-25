@@ -58,7 +58,7 @@ export const checkPricing = async (reservationData: ReservationRequest): Promise
         endTime: ensureTimezone(reservationData.endTime),
     };
 
-    const response = await api.post('/TARIFFS-SERVICE/check', data);
+    const response = await api.post('/TARIFFS-SERVICE/calculate-price', data);
     return response.data;
 };
 
@@ -69,12 +69,12 @@ export const createReservation = async (reservationData: ReservationRequest): Pr
         endTime: ensureTimezone(reservationData.endTime),
     };
 
-    const response = await api.post('/reservations', data);
+    const response = await api.post('/RESERVATIONS-SERVICE/', data);
     return response.data;
 };
 
 export const getReservations = async (startDate: Date, endDate: Date): Promise<ReservationResponse[]> => {
-    const response = await api.get('/reservations', {
+    const response = await api.get('/RESERVATIONS-SERVICE/', {
         params: {
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
@@ -92,7 +92,7 @@ function ensureTimezone(dateString: string): string {
 }
 
 export const checkKartAvailability = async (startTime: string, endTime: string): Promise<KartAvailabilityResponse> => {
-    const response = await api.get('/tariffs/availability', {
+    const response = await api.get('/RESERVATIONS-SERVICE/availability', {
         params: {
             startTime,
             endTime
@@ -102,6 +102,6 @@ export const checkKartAvailability = async (startTime: string, endTime: string):
 };
 
 export const cancelReservation = async (id: number): Promise<ReservationResponse> => {
-    const response = await api.post(`/tariffs/${id}/cancel`);
+    const response = await api.post(`/RESERVATIONS-SERVICE/${id}/cancel`);
     return response.data;
 };

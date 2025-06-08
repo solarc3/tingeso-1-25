@@ -99,25 +99,29 @@ spec:
             httpGet:
               path: /actuator/health/readiness
               port: management
-            failureThreshold: 6
-            periodSeconds: 5
-            initialDelaySeconds: 15
+            failureThreshold: 10
+            periodSeconds: 10
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
 
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
               port: management
-            failureThreshold: 3
-            periodSeconds: 10
-            initialDelaySeconds: 45
+            failureThreshold: 5
+            periodSeconds: 30
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
 
           startupProbe:
             httpGet:
               path: /actuator/health
               port: management
-            failureThreshold: 30
+            failureThreshold: 60
             periodSeconds: 10
-            initialDelaySeconds: 45
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+
 
 ---
 apiVersion: v1

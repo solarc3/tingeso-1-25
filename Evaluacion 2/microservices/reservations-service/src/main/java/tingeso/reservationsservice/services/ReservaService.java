@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import tingeso.reservationsservice.DTO.*;
@@ -24,7 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReservaService {
     private final AvailabilityService availabilityService;
-    private final PricingService pricingService;
     private final ReservaRepository reservaRepository;
     private final ModelMapper modelMapper;
     private final KartService kartService;
@@ -51,15 +51,16 @@ public class ReservaService {
         PricingRequestDto pReq = modelMapper.map(req, PricingRequestDto.class);
         //TODO: recibir info de tariffs-service ms1, ese maneja la logica de pricing
         return calculatePrice(pReq);
-        //return pricingService.calculatePrice(pReq);
     }
     //recibir datos de ms1
     // endpoint /calculate-price
     private PricingResponseDto calculatePrice(PricingRequestDto pReq) {
         try{
 
-            String url = gatewayBaseUrl + "/api/TARIFFS-service/calculate-price";
+            String url = gatewayBaseUrl + "/api/TARIFFS-SERVICE/calculate-price";
             return restTemplate.postForObject(url, pReq, PricingResponseDto.class);
+        } catch (RestClientException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -103,7 +104,7 @@ public class ReservaService {
         ComprobanteEntity comprobante = comprobanteService.generarComprobante(saved);
         comprobanteService.enviarComprobantePorEmail(comprobante.getId());
 
-        ReservaResponseDto resp = ReservaResponseDto.builder()
+        return ReservaResponseDto.builder()
             .id(saved.getId())
             .responsibleName(saved.getResponsibleName())
             .responsibleEmail(saved.getResponsibleEmail())
@@ -120,8 +121,6 @@ public class ReservaService {
             .totalAmount(pricing.getTotalAmount())
             .status(saved.getStatus().toString())
             .build();
-
-        return resp;
     }
 
     public List<ReservaResponseDto> getReservationsBetweenDates(OffsetDateTime startDate, OffsetDateTime endDate) {
