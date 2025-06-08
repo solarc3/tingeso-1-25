@@ -10,20 +10,20 @@ export type ComprobanteResponse = {
 
 // Obtener información del comprobante
 export const getComprobante = async (id: number): Promise<ComprobanteResponse> => {
-    const response = await api.get(`/RESERVATIONS-SERVICE//${id}`);
+    const response = await api.get(`/RESERVATIONS-SERVICE/${id}`);
     return response.data;
 };
 
 // Enviar el comprobante por email
 export const enviarComprobante = async (id: number): Promise<string> => {
-    const response = await api.post(`/RESERVATIONS-SERVICE//enviar/${id}`);
+    const response = await api.post(`/RESERVATIONS-SERVICE/enviar/${id}`);
     return response.data;
 };
 
 // Descargar el PDF del comprobante
 export const descargarComprobantePdf = async (id: number): Promise<void> => {
     try {
-        const response = await api.get(`/RESERVATIONS-SERVICE//${id}/pdf`, {
+        const response = await api.get(`/RESERVATIONS-SERVICE/${id}/pdf`, {
             responseType: 'blob'
         });
 
@@ -44,6 +44,6 @@ export const descargarComprobantePdf = async (id: number): Promise<void> => {
     }
 };
 export const getComprobanteByReserva = async (reservaId: number): Promise<ComprobanteResponse> => {
-    const response = await api.get(`/RESERVATIONS-SERVICE//reserva/${reservaId}`);
+    const response = await api.get(`/RESERVATIONS-SERVICE/reserva/${reservaId}`);
     return response.data;
 };

@@ -70,6 +70,9 @@ spec:
                   key: password
 
             {{- if eq .name "reservations-service" }}
+            - name: SPRING_CACHE_TYPE
+              value: "simple"
+
             - name: SPRING_MAIL_HOST
               valueFrom:
                 secretKeyRef:
@@ -90,14 +93,6 @@ spec:
                 secretKeyRef:
                   name: email-secret
                   key: password
-            - name: SPRING_REDIS_HOST
-              value: "redis-service"
-            - name: SPRING_REDIS_PORT
-              value: "{{ $.Values.redis.port }}"
-            - name: SPRING_CACHE_TYPE
-              value: "redis"
-            - name: SPRING_CACHE_REDIS_TIME_TO_LIVE
-              value: "300000"
             {{- end }}
 
             - name: TZ

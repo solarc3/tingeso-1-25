@@ -35,7 +35,6 @@ public class ReservaService {
 
     @Value("${gateway.base.url}")
     private String gatewayBaseUrl;
-    @Cacheable(value = "pricing", key = "#req.startTime.toString() + '_' + #req.endTime.toString() + '_' + #req.numPeople")
     public PricingResponseDto checkAvailability(ReservaRequestDto req) {
         AvailabilityRequestDto aReq = AvailabilityRequestDto.builder()
             .startTime(req.getStartTime())
@@ -65,7 +64,6 @@ public class ReservaService {
             throw new RuntimeException(e);
         }
     }
-    @CacheEvict(value = {"reservations", "availability"}, allEntries = true)
     public ReservaResponseDto createReservation(ReservaRequestDto req) {
         if (req.getGuests() == null || req.getGuests().size() != req.getNumPeople()) {
             throw new ResponseStatusException(
@@ -124,7 +122,6 @@ public class ReservaService {
             .status(saved.getStatus().toString())
             .build();
     }
-    @Cacheable(value = "reservations", key = "#startDate.toString() + '_' + #endDate.toString()")
     public List<ReservaResponseDto> getReservationsBetweenDates(OffsetDateTime startDate, OffsetDateTime endDate) {
         List<ReservaEntity> entities = reservaRepository.findByStartTimeBetween(startDate, endDate);
         return entities.stream()
@@ -144,7 +141,6 @@ public class ReservaService {
     public List<ReservaResponseDto> createReservations(ReservaRequestDto req) {
         return List.of(createReservation(req));
     }
-    @Cacheable(value = "availability", key = "#startTime.toString() + '_' + #endTime.toString()")
     public KartAvailabilityResponseDto getKartAvailability(OffsetDateTime startTime, OffsetDateTime endTime) {
         System.out.println("Checking availability for period:");
         System.out.println("Start: " + startTime);
@@ -166,7 +162,6 @@ public class ReservaService {
             .availableKarts(freeKarts.size())
             .build();
     }
-    @CacheEvict(value = {"reservations", "availability"}, allEntries = true)
     public ReservaResponseDto cancelReservation(Long id) {
         ReservaEntity reservation = reservaRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva no encontrada"));

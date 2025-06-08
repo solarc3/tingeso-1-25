@@ -156,16 +156,9 @@ data:
     server.port=0
     gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
-    spring.redis.host=redis-service
-    spring.redis.port={{ .Values.redis.port }}
-    spring.redis.timeout=2000ms
-    spring.redis.lettuce.pool.max-active=8
-    spring.redis.lettuce.pool.max-idle=8
-    spring.redis.lettuce.pool.min-idle=2
     spring.mail.properties.mail.smtp.auth=true
     spring.mail.properties.mail.smtp.starttls.enable=true
-    spring.cache.type=redis
-    spring.cache.redis.time-to-live=300000
+    spring.cache.type=simple
 
   customer-discounts-service.properties: |
     server.port=0

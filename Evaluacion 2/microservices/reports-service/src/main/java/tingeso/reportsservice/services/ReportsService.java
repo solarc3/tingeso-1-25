@@ -2,12 +2,16 @@ package tingeso.reportsservice.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import tingeso.reportsservice.DTO.ReportEntryDto;
 import tingeso.reportsservice.DTO.ReportResponseDto;
 import tingeso.reportsservice.entities.ReservaEntity;
 import tingeso.reportsservice.entities.ReservaStatus;
+import tingeso.reportsservice.DTO.ReservaResponseDto;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -24,36 +28,49 @@ public class ReportsService {
     private String gatewayBaseUrl;
 
     private final RestTemplate restTemplate;
-    public ReportResponseDto getLapsByRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
-        //reservaRepository, instead call method from reservations microservice
-        //List<ReservaEntity> allReservations = reservaRepository.findByStartTimeBetween(startDate, endDate);
-        List<ReservaEntity> allReservations = getfindByStartTimeBetween(startDate, endDate);
 
-        List<ReservaEntity> reservations = allReservations.stream()
-            .filter(r -> r.getStatus() == ReservaStatus.CONFIRMED)
-            .collect(Collectors.toList());
-        Map<Integer, List<ReservaEntity>> reservationsByLaps = new HashMap<>();
-        for (ReservaEntity reservation : reservations) {
-            Integer laps = reservation.getLaps();
-            if (laps == null) {
-                if (reservation.getDuration() != null) {
-                    if (reservation.getDuration() <= 30) laps = 10;
-                    else if (reservation.getDuration() <= 35) laps = 15;
-                    else laps = 20;
-                } else {
-                    continue;
+    public ReportResponseDto getLapsByRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
+        List<ReservaResponseDto> allReservations = getfindByStartTimeBetween(startDate, endDate);
+
+        List<ReservaResponseDto> reservations = allReservations.stream()
+            .filter(r -> {
+                try {
+                    return ReservaStatus.valueOf(r.getStatus()) == ReservaStatus.CONFIRMED;
+                } catch (IllegalArgumentException e) {
+                    return false; // Handle invalid status values
                 }
+            })
+            .collect(Collectors.toList());
+
+        Map<Integer, List<ReservaResponseDto>> reservationsByLaps = new HashMap<>();
+        for (ReservaResponseDto reservation : reservations) {
+            Integer laps = null;
+            if (reservation.getStartTime() != null && reservation.getEndTime() != null) {
+                long durationMinutes = java.time.Duration.between(
+                    reservation.getStartTime(),
+                    reservation.getEndTime()
+                                                                 ).toMinutes();
+
+                // Convert duration to laps based on your business logic
+                if (durationMinutes <= 30) laps = 10;
+                else if (durationMinutes <= 35) laps = 15;
+                else laps = 20;
+            } else {
+                // If we can't calculate duration, skip this reservation
+                continue;
             }
 
             reservationsByLaps.computeIfAbsent(laps, k -> new ArrayList<>()).add(reservation);
         }
 
-        // Calculate revenue for each category
         List<ReportEntryDto> entries = new ArrayList<>();
-        for (Map.Entry<Integer, List<ReservaEntity>> entry : reservationsByLaps.entrySet()) {
+        for (Map.Entry<Integer, List<ReservaResponseDto>> entry : reservationsByLaps.entrySet()) {
             BigDecimal totalRevenue = BigDecimal.ZERO;
-            for (ReservaEntity reservation : entry.getValue()) {
-                totalRevenue = totalRevenue.add(reservation.getTotalPrice());
+            for (ReservaResponseDto reservation : entry.getValue()) {
+                BigDecimal price = reservation.getTotalAmount();
+                if (price != null) {
+                    totalRevenue = totalRevenue.add(price);
+                }
             }
 
             entries.add(ReportEntryDto.builder()
@@ -69,25 +86,45 @@ public class ReportsService {
             .build();
     }
 
-    private List<ReservaEntity> getfindByStartTimeBetween(OffsetDateTime startDate, OffsetDateTime endDate) {
-        String url = gatewayBaseUrl + "/api/RESERVATIONS-SERVICE/?startDate={startDate}&endDate={endDate}";
+    private List<ReservaResponseDto> getfindByStartTimeBetween(OffsetDateTime startDate, OffsetDateTime endDate) {
+        try {
+            String url = gatewayBaseUrl + "/api/RESERVATIONS-SERVICE/?startDate={startDate}&endDate={endDate}";
 
-        return restTemplate.getForObject(url, List.class, startDate, endDate);
+            ResponseEntity<List<ReservaResponseDto>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<ReservaResponseDto>>() {},
+                startDate, endDate
+                                                                                     );
+
+            return response.getBody() != null ? response.getBody() : new ArrayList<>();
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error calling reservations service: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     public ReportResponseDto getPeopleByRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
-        //List<ReservaEntity> allReservations = reservaRepository.findByStartTimeBetween(startDate, endDate);
-        List<ReservaEntity> allReservations = getfindByStartTimeBetween(startDate, endDate);
-        List<ReservaEntity> reservations = allReservations.stream()
-            .filter(r -> r.getStatus() == ReservaStatus.CONFIRMED)
+        List<ReservaResponseDto> allReservations = getfindByStartTimeBetween(startDate, endDate);
+        List<ReservaResponseDto> reservations = allReservations.stream()
+            .filter(r -> {
+                try {
+                    return ReservaStatus.valueOf(r.getStatus()) == ReservaStatus.CONFIRMED;
+                } catch (IllegalArgumentException e) {
+                    return false; // Handle invalid status values
+                }
+            })
             .collect(Collectors.toList());
 
-        Map<String, List<ReservaEntity>> reservationsByPeopleCategory = new HashMap<>();
+        Map<String, List<ReservaResponseDto>> reservationsByPeopleCategory = new HashMap<>();
         reservationsByPeopleCategory.put("1-2 personas", new ArrayList<>());
         reservationsByPeopleCategory.put("3-5 personas", new ArrayList<>());
         reservationsByPeopleCategory.put("6-10 personas", new ArrayList<>());
         reservationsByPeopleCategory.put("11-15 personas", new ArrayList<>());
-        for (ReservaEntity reservation : reservations) {
+
+        for (ReservaResponseDto reservation : reservations) {
             int numPeople = reservation.getNumPeople();
             String category;
 
@@ -100,10 +137,13 @@ public class ReportsService {
         }
 
         List<ReportEntryDto> entries = new ArrayList<>();
-        for (Map.Entry<String, List<ReservaEntity>> entry : reservationsByPeopleCategory.entrySet()) {
+        for (Map.Entry<String, List<ReservaResponseDto>> entry : reservationsByPeopleCategory.entrySet()) {
             BigDecimal totalRevenue = BigDecimal.ZERO;
-            for (ReservaEntity reservation : entry.getValue()) {
-                totalRevenue = totalRevenue.add(reservation.getTotalPrice());
+            for (ReservaResponseDto reservation : entry.getValue()) {
+                BigDecimal price = reservation.getTotalAmount();
+                if (price != null) {  // Add null check here
+                    totalRevenue = totalRevenue.add(price);
+                }
             }
 
             entries.add(ReportEntryDto.builder()
