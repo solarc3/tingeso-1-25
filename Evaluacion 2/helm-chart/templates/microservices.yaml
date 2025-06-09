@@ -71,7 +71,11 @@ spec:
 
             {{- if eq .name "reservations-service" }}
             - name: SPRING_CACHE_TYPE
-              value: "simple"
+              value: "redis"
+            - name: SPRING_DATA_REDIS_HOST
+              value: redis-service
+            - name: SPRING_DATA_REDIS_PORT
+              value: "{{ $.Values.redis.port }}"
 
             - name: SPRING_MAIL_HOST
               valueFrom:

@@ -64,6 +64,7 @@ public class ReservaService {
             throw new RuntimeException(e);
         }
     }
+    @CacheEvict(value = "reservations", allEntries = true)
     public ReservaResponseDto createReservation(ReservaRequestDto req) {
         if (req.getGuests() == null || req.getGuests().size() != req.getNumPeople()) {
             throw new ResponseStatusException(
@@ -122,6 +123,7 @@ public class ReservaService {
             .status(saved.getStatus().toString())
             .build();
     }
+    @Cacheable(value = "reservations", key = "#startDate.toString() + '_' + #endDate.toString()")
     public List<ReservaResponseDto> getReservationsBetweenDates(OffsetDateTime startDate, OffsetDateTime endDate) {
         List<ReservaEntity> entities = reservaRepository.findByStartTimeBetween(startDate, endDate);
         return entities.stream()
@@ -162,6 +164,7 @@ public class ReservaService {
             .availableKarts(freeKarts.size())
             .build();
     }
+    @CacheEvict(value = "reservations", allEntries = true)
     public ReservaResponseDto cancelReservation(Long id) {
         ReservaEntity reservation = reservaRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva no encontrada"));
