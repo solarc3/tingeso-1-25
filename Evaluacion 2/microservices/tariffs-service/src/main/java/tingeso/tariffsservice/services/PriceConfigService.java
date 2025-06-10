@@ -1,29 +1,36 @@
 package tingeso.tariffsservice.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tingeso.tariffsservice.entities.PriceConfigEntity;
+import tingeso.tariffsservice.repositories.PriceConfigRepository;
 
 import java.math.BigDecimal;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PriceConfigService {
-    private final ConcurrentHashMap<String, BigDecimal> priceConfig = new ConcurrentHashMap<>();
 
-    public PriceConfigService() {
-        priceConfig.put("VUELTAS_10_PRECIO", BigDecimal.valueOf(15000));
-        priceConfig.put("VUELTAS_15_PRECIO", BigDecimal.valueOf(20000));
-        priceConfig.put("VUELTAS_20_PRECIO", BigDecimal.valueOf(25000));
-    }
+    private final PriceConfigRepository repository;
 
+    @Transactional(readOnly = true)
     public BigDecimal getPrice(String key) {
-        return priceConfig.getOrDefault(key, BigDecimal.ZERO);
+        return repository.findById(key)
+                .map(PriceConfigEntity::getPrice)
+                .orElse(BigDecimal.ZERO);
     }
 
+    @Transactional
     public void setPrice(String key, BigDecimal value) {
-        priceConfig.put(key, value);
+        repository.save(new PriceConfigEntity(key, value));
     }
 
-    public ConcurrentHashMap<String, BigDecimal> getAllPrices() {
-        return new ConcurrentHashMap<>(priceConfig);
+    @Transactional(readOnly = true)
+    public Map<String, BigDecimal> getAllPrices() {
+        return repository.findAll().stream()
+                .collect(Collectors.toMap(PriceConfigEntity::getKey, PriceConfigEntity::getPrice));
     }
 }
