@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import tingeso.reportsservice.DTO.ReportEntryDto;
 import tingeso.reportsservice.DTO.ReportResponseDto;
-import tingeso.reportsservice.entities.ReservaEntity;
 import tingeso.reportsservice.entities.ReservaStatus;
 import tingeso.reportsservice.DTO.ReservaResponseDto;
 
