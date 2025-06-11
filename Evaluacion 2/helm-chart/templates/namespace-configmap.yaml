@@ -131,10 +131,6 @@ data:
     spring.cloud.gateway.routes[16].predicates[1]=Method=GET
     spring.cloud.gateway.routes[16].order=100
 
-    spring.cloud.gateway.routes[17].id=eureka
-    spring.cloud.gateway.routes[17].uri=http://eureka-server:8761
-    spring.cloud.gateway.routes[17].predicates[0]=Path=/eureka/**
-
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-origins=http://localhost:5173,http://localhost:3000,http://{{ .Values.apiGateway.loadBalancerIP }},http://34.149.56.34,https://tingeso.solarworks.cl
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-methods=GET,POST,PUT,DELETE,OPTIONS,PATCH
     spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-headers=*

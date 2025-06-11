@@ -215,7 +215,6 @@ kind: Ingress
 metadata:
   name: api-gateway-ingress
   namespace: {{ .Values.namespace }}
-
 spec:
   ingressClassName: "gce"
   rules:
@@ -228,4 +227,18 @@ spec:
               service:
                 name: api-gateway
                 port:
-                  number: 8080
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 80

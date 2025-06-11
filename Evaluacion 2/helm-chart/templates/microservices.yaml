@@ -23,8 +23,6 @@ spec:
         - name: {{ .name }}
           image: {{ $.Values.artifactRegistry.location }}-docker.pkg.dev/{{ $.Values.artifactRegistry.projectId }}/{{ $.Values.artifactRegistry.repository }}/{{ .name }}:{{ $.Values.imageTag }}
           ports:
-            - name: http
-              containerPort: 8080
             - name: management
               containerPort: 8081
           resources:
@@ -135,9 +133,6 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: http
-      port: 80
-      targetPort: http
     - name: management
       port: 8081
       targetPort: management
