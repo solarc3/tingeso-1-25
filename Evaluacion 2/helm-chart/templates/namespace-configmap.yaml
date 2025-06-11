@@ -179,8 +179,10 @@ data:
     server.port=0
     gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
+    spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 
   reports-service.properties: |
     server.port=0
     gateway.base.url=http://api-gateway:8080
     eureka.client.service-url.defaultZone={{ .Values.eurekaUrl }}
+    spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
